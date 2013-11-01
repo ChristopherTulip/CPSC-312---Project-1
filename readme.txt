@@ -1,7 +1,6 @@
 Oska
 
-Oska is played on a board like that shown below. The two players face each other across the board. Each player 
-begins with four pieces, placed one to a square in each of the four squares nearest that player. 
+Oska is played on a board like that shown below. The two players face each other across the board. Each player begins with four pieces, placed one to a square in each of the four squares nearest that player. 
  
   --------------- 
  | w | w | w | w | 
@@ -15,8 +14,7 @@ begins with four pieces, placed one to a square in each of the four squares near
  | b | b | b | b | 
   --------------- 
  
-The player with the white pieces makes the first move, and the players alternate moves after that. A player may 
-choose to move one of his or her pieces in one of these ways: 
+The player with the white pieces makes the first move, and the players alternate moves after that. A player may choose to move one of his or her pieces in one of these ways: 
  
  A piece may be moved forward on the diagonal, one space at a time, 
  to an empty space, as in checkers or draughts. 
@@ -29,10 +27,11 @@ choose to move one of his or her pieces in one of these ways:
  allowed. Also, even if a capture is possible, it does not have to 
  be made if other moves are possible. 
  
-The players alternate moving pieces until one of the players wins. If a player can't make a legal move on a given 
-turn, the player loses that turn and the opponent makes another move. A player wins when: 
+The players alternate moving pieces until one of the players wins. If a player can't make a legal move on a given turn, the player loses that turn and the opponent makes another move. A player wins when: 
  
- All the opponent's pieces have been removed from the board, or 
+ All the opponent's pieces have been removed from the board, 
+ 
+ or 
  
  All the player's REMAINING pieces have been moved to the opponent's 
  starting (or back) row. Note that this rule makes the strategy for 
