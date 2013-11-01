@@ -6,7 +6,7 @@ import Data.List
 data State = State {
 	white 	:: [ Piece ] 
 	black 	:: [ Piece ]
-	turn 	:: Int
+	turn 		:: Int
 } deriving (Show, Eq, Ord)
 
 data Piece = Piece {
@@ -27,11 +27,13 @@ nextStates :: State -> [ State ]
 bestSate :: [ State ] -> State
 -- nextStates, return bestState
 
+possibleMoves :: Piece -> State -> [ State ]
+-- pieceToMove, currentState, newStates
 
+-- 
+-- Piece Interactions
+--
 
---
--- Piece Level Logic (Eg. Moves)
---
 
 canJump :: Piece -> State -> Bool
 -- currentPiece, currentState, return canJump?
@@ -39,12 +41,29 @@ canJump :: Piece -> State -> Bool
 canMove :: Piece -> State -> Bool
 -- currentPiece, currentState, return canMove?
 
-move :: Piece -> Piece
--- currentPiece, return movedPiece
+removePiece :: Piece -> State -> State
+-- pieceToRemove, currentState, return newState
+
+replacePiece :: Piece -> State -> State
+-- pieceToReplace, replacement, currentState, return newState 
+
+--
+-- Piece Level Logic (Eg. Moves)
+--
+
+move :: Piece -> Int -> Piece
+-- currentPiece, direction, return movedPiece
 
 jump :: Piece -> Piece 
--- 
+-- This function 
+
+jumpRight :: Piece -> Piece 
+-- This function 
+
 
 -- Constants
 white = 0
-black =1
+black = 1
+
+left 	= 0
+right = 1
