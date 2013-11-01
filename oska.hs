@@ -1,4 +1,5 @@
 import Data.List
+
 --
 -- Data Model
 --
@@ -15,7 +16,7 @@ data Piece = Piece {
 } deriving (Show, Eq, Ord)
 
 --
--- State Level Logic
+-- Search Level Logic
 --
 
 minimaxSearch :: State -> Int -> State
@@ -24,14 +25,34 @@ minimaxSearch :: State -> Int -> State
 nextStates :: State -> [ State ]
 -- currentState, return nextStates
 
+
 bestSate :: [ State ] -> State
 -- nextStates, return bestState
 
-possibleMoves :: Piece -> State -> [ State ]
--- pieceToMove, currentState, newStates
+--
+-- State Level Logic
+--
+
+getHeuristicValue :: State -> Int
+-- currentState, return value
+
+movesForState :: State -> [ State ]
+-- currentState, return possibleStates
+--
+-- for each piece get nextStates
+--
+
 
 -- 
 -- Piece Interactions
+--
+
+movesForPiece :: Piece -> State -> [ State ]
+-- pieceToMove, currentState, newStates
+--
+-- Possible Moves: 
+-- canJump (left | right) -> (jump pieceToMove) / (removePiece jumped) : newStates
+-- canMove (left | right) -> (move pieceToMove) : newStates
 --
 
 
@@ -44,7 +65,7 @@ canMove :: Piece -> State -> Bool
 removePiece :: Piece -> State -> State
 -- pieceToRemove, currentState, return newState
 
-replacePiece :: Piece -> State -> State
+replacePiece :: Piece -> Piece -> State -> State
 -- pieceToReplace, replacement, currentState, return newState 
 
 --
@@ -54,14 +75,12 @@ replacePiece :: Piece -> State -> State
 move :: Piece -> Int -> Piece
 -- currentPiece, direction, return movedPiece
 
-jump :: Piece -> Piece 
--- This function 
+jump :: Piece -> Int -> Piece 
+-- currentPiece, direction, return movedPiece
 
-jumpRight :: Piece -> Piece 
--- This function 
-
-
+--
 -- Constants
+--
 white = 0
 black = 1
 
