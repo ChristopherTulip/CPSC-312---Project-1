@@ -1,8 +1,8 @@
 import Data.List
 
---
+-- ****************************************************
 -- Data Model
---
+-- ****************************************************
 
 data State = State {
 	white 	:: [ Piece ] 
@@ -15,16 +15,12 @@ data Piece = Piece {
 	y 		:: Int
 } deriving (Show, Eq, Ord)
 
---
+-- ****************************************************
 -- Search Level Logic
---
+-- ****************************************************
 
 minimaxSearch :: State -> Int -> State
 -- currentState, depth, return newState
-
-nextStates :: State -> [ State ]
--- currentState, return nextStates
-
 
 bestSate :: [ State ] -> State
 -- nextStates, return bestState
@@ -33,19 +29,18 @@ bestSate :: [ State ] -> State
 -- State Level Logic
 --
 
-getHeuristicValue :: State -> Int
--- currentState, return value
-
 movesForState :: State -> [ State ]
 -- currentState, return possibleStates
 --
--- for each piece get nextStates
+-- for each Piece get nextStates
 --
 
+getHeuristicValue :: State -> Int
+-- currentState, return value
 
--- 
+-- ****************************************************
 -- Piece Interactions
---
+-- ****************************************************
 
 movesForPiece :: Piece -> State -> [ State ]
 -- pieceToMove, currentState, newStates
@@ -54,7 +49,6 @@ movesForPiece :: Piece -> State -> [ State ]
 -- canJump (left | right) -> (jump pieceToMove) / (removePiece jumped) : newStates
 -- canMove (left | right) -> (move pieceToMove) : newStates
 --
-
 
 canJump :: Piece -> State -> Bool
 -- currentPiece, currentState, return canJump?
@@ -68,9 +62,15 @@ removePiece :: Piece -> State -> State
 replacePiece :: Piece -> Piece -> State -> State
 -- pieceToReplace, replacement, currentState, return newState 
 
---
+pieceOnBoard :: Piece -> Bool
+-- nextPiece, return onBoard 
+
+pieceBlocked ::  Piece -> State -> Bool
+-- nextPiece, currentState, return blocked
+
+-- ****************************************************
 -- Piece Level Logic (Eg. Moves)
---
+-- ****************************************************
 
 move :: Piece -> Int -> Piece
 -- currentPiece, direction, return movedPiece
