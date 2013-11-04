@@ -5,15 +5,15 @@ import Data.List
 -- ****************************************************
 
 data State = State {
-	whites 	:: [ Point ],
-	blacks 	:: [ Point ],
-  board         :: [ Point ],
-	turn 		      :: Int
+	whites 	 :: [ Point ],
+	blacks 	 :: [ Point ],
+  board    :: [ Point ],
+	turn 		 :: Int
 } deriving (Show, Eq, Ord)
 
 data Point = Point {
-	x 		:: Int,
-	y 		:: Int
+	x 		   :: Int,
+	y 		   :: Int
 } deriving (Show, Eq, Ord)
 
 -- ****************************************************
@@ -52,25 +52,34 @@ data Point = Point {
 --  | (validMove (head pts) state)  =
 --  | otherwise                     =
 
---possibleMoves :: Point -> State -> [ Point ]
---possibleMoves pt state = [ jumpLeft, jumpRight, moveLeft, moveRight ]
---  where
---    jumpLeft  = jump pt left (turn state)
---    jumpRight = jump pt right (turn state)
---    moveLeft  = move pt left (turn state)
---    moveRight = move pt right (turn state)
+possibleMoves :: [ Point ] -> State -> [ State ]
+possibleMoves pts state
+  | null pts                = []
+  | otherwise               = merge (validMovesForPoint (head pts) state) (possibleMoves (tail pts) state)
 
---validMovesForPoint :: Point -> State -> [ State ]
---validMovesForPoint pt state  = merge jumpStates moveStates
---  where
---    jumpStates = jumpStatesForPoint pt state
---    moveStates = moveStateForPoint pt state
+validMovesForPoint :: Point -> State -> [ State ]
+validMovesForPoint pt state = merge jumpStates moveStates
+  where
+    jumpStates = jumpStatesForPoint pt state
+    moveStates = moveStateForPoint pt state
+
+moveStateForPoint :: Point -> State -> [ State ]
+moveStateForPoint pt state
+  | both              = [leftMove, rightMove]
+  | leftMove /= state = [leftMove]
+  | rightMove/= state = [rightMove]
+  | otherwise         = [State [(Point 999 999)] [(Point 999 999)] [(Point 999 999)] white]
+  where
+    both      = (leftMove /= state) && (rightMove /= state)
+    leftMove  = stateAfterMove pt left  state
+    rightMove = stateAfterMove pt right state
 
 jumpStatesForPoint :: Point -> State -> [ State ]
 jumpStatesForPoint pt state
   | both              = [leftJump, rightJump]
   | leftJump /= state = [leftJump]
   | rightJump/= state = [rightJump]
+  | otherwise         = []
   where
     both      = (leftJump /= state) && (rightJump /= state)
     leftJump  = stateAfterJump pt left  state
@@ -88,7 +97,9 @@ stateAfterJump pt dir state
     cleanState  = removePointForState ( move pt dir ( turn state ) ) state
 
 stateAfterMove :: Point -> Int -> State -> State
-stateAfterMove pt dir state = replacePointForState pt ( move pt dir ( turn state ) ) state
+stateAfterMove pt dir state
+  | (canMove pt dir state)  = replacePointForState pt ( move pt dir ( turn state ) ) state
+  | otherwise               = state
 
 replacePointForState :: Point -> Point -> State -> State
 replacePointForState pt newPt state
@@ -124,7 +135,7 @@ canJump :: Point -> Int -> State -> Bool
 canJump pt dir state = bounded && blocked
   where
     nextPoint = jump pt dir (turn state)
-    blocked   = pointBlocked (move pt dir (turn state)) state
+    blocked   = pointTaken (move pt dir (turn state)) state
     bounded   = (pointInBounds nextPoint state)
 
 -- currentPoint, currentState, return canJump?
@@ -133,15 +144,13 @@ canMove pt dir state = bounded && clear
   where
     nextPoint = move pt dir (turn state)
     bounded   = (pointInBounds nextPoint state)
-    clear     = not (pointBlocked nextPoint state)
+    clear     = not (pointTaken nextPoint state)
 
 pointInBounds :: Point -> State -> Bool
 pointInBounds point state = ( elem point (board state) )
 
-pointBlocked ::  Point -> State -> Bool
-pointBlocked point state
-  | (turn state) == white = ( elem point (blacks state) )
-  | otherwise             = ( elem point (whites state) )
+pointTaken ::  Point -> State -> Bool
+pointTaken point state  = ( elem point (blacks state) ) || ( elem point (whites state) )
 
 -- currentPoint, direction, turn, return movedPoint
 move :: Point -> Int -> Int -> Point
@@ -159,13 +168,24 @@ jump old direction turn
 -- Tests
 -- ****************************************************
 
+-- validMovesForPoint :: Point -> State -> [ State ]
+t_validMovesForPoint1 = validMovesForPoint (head whiteList) firstState
+t_validMovesForPoint2 = validMovesForPoint (nth whiteList 0 1) firstState
+t_validMovesForPoint3 = validMovesForPoint (nth whiteList 0 2) firstState
+t_validMovesForPoint4 = validMovesForPoint (nth whiteList 0 3) firstState
 
+
+-- stateAfterMove :: Point -> Int -> State
+t_stateAfterMoveWL = stateAfterMove (head (whites blockedStateW)) left  blockedStateW
+t_stateAfterMoveBL = stateAfterMove (head (blacks blockedStateB)) left  blockedStateB
+t_stateAfterMoveWR = stateAfterMove (head (whites blockedStateW)) right blockedStateW
+t_stateAfterMoveBR = stateAfterMove (head (blacks blockedStateB)) right blockedStateB
 
 -- stateAfterJump :: Point -> Int -> State
-t_stateAfterJumpWL = stateAfterJump (head (whites blockedStateW)) left  blockedStateW -- blocked :. just state
-t_stateAfterJumpBL = stateAfterJump (head (blacks blockedStateB)) left  blockedStateB -- blocked :. just state
-t_stateAfterJumpWR = stateAfterJump (head (whites blockedStateW)) right blockedStateW -- case that works
-t_stateAfterJumpBR = stateAfterJump (head (blacks blockedStateB)) right blockedStateB -- blocked :. just state
+t_stateAfterJumpWL = stateAfterJump (head (whites blockedStateW)) left  blockedStateW
+t_stateAfterJumpBL = stateAfterJump (head (blacks blockedStateB)) left  blockedStateB
+t_stateAfterJumpWR = stateAfterJump (head (whites blockedStateW)) right blockedStateW
+t_stateAfterJumpBR = stateAfterJump (head (blacks blockedStateB)) right blockedStateB
 
 -- replacePointForState :: Point -> Point -> State -> State
 t_replacePointForState = replacePointForState (head whiteList) (Point 10 10) firstState
@@ -191,7 +211,9 @@ t_canJumpT    = canJump (head (whites blockedStateW)) right blockedStateW
 t_canJumpFOOB = canJump (head (whites blockedStateW)) left blockedStateW
 t_canJumpFNB  = canJump (head (whites firstState)) right firstState
 
--- pointBlocked ::  Point -> State -> Bool
+-- pointTaken ::  Point -> State -> Bool
+t_pointTakenT = pointTaken (Point 4 3) blockedStateW
+t_pointTakenF = pointTaken (Point 1 1) blockedStateW
 
 -- pointInBounds :: Point -> State -> Bool
 t_pointInBoundsT = pointInBounds (head whiteList) firstState
@@ -226,7 +248,6 @@ blackList = (blacks firstState)
 firstState = stringToState testString
 
 blockedStateW = ( State [ (Point 3 2) ] [ (Point 4 3),(Point 3 3) ] testBoard white )
-
 blockedStateB = ( State [ (Point 3 2) ] [ (Point 4 3),(Point 3 3) ] testBoard black )
 
 testBoard = [(Point 3 5),(Point 4 5),(Point 2 5),(Point 1 5),(Point 4 4),(Point 3 4),(Point 2 4),(Point 4 3),(Point 3 3),(Point 4 2),(Point 3 2),(Point 2 2),(Point 4 1),(Point 3 1),(Point 2 1),(Point 1 1)]
@@ -279,9 +300,15 @@ processLine line yCoord offset
 -- Helpers
 -- ****************************************************
 merge :: [a] -> [a] -> [a]
+merge [] []               = []
 merge xs []               = xs
 merge [] ys               = ys
 merge (x:xs) (y:ys)       = x : y : merge xs ys
+
+nth :: [a] -> Int -> Int -> a
+nth arr i depth
+  | i == depth  = (head arr)
+  | otherwise   = nth (tail arr) (i+1) depth
 
 --
 -- Constants
@@ -289,5 +316,5 @@ merge (x:xs) (y:ys)       = x : y : merge xs ys
 white = 0
 black = 1
 
-left 	= (-1)
-right = 1
+left 	= 1
+right = 0
