@@ -97,8 +97,6 @@ move old direction turn
   | turn == white     = ( Point ( (x old) + direction ) ( (y old) + 1 ) )
   | otherwise         = ( Point ( (x old) + direction ) ( (y old) - 1 ) )
 
-
-
 -- currentPoint, direction, turn, return movedPoint
 jump :: Point -> Int -> Int -> Point
 jump old direction turn
@@ -162,7 +160,7 @@ stringToState input = ( State whites blacks board white )
   where
     whites = (buildWhites (head input) )
     blacks = (buildBlacks (last input) (length input) )
-    board  = (buildBoard input (length input) 0 )
+    board  = (buildBoard input ( length (head input) ) (length input) )
 
 buildWhites :: String -> [ Point ]
 buildWhites input
@@ -176,22 +174,23 @@ buildBlacks input height
   | otherwise         = (Point (length input) height) : (buildBlacks (tail input) height)
 
 buildBoard :: [ String ] -> Int -> Int -> [ Point ]
-buildBoard input listLen offset
+buildBoard input maxWidth height
   | null input        = []
-  | firstHalf         = merge lineList buildBoard (tail input) listLen (offset + 1)
-  | otherwise         = merge lineList buildBoard (tail input) listLen (offset - 1)
+  | otherwise         = merge ( processLine (head input) (length input) offset ) next
   where
-    lineList  = ( processLine (head input) (length input) offset )
-    firstHalf = ( (quot listLen offset) > 1 )
-    nextOffset= offset + 1
+    next      = ( buildBoard (tail input) maxWidth height )
+    offset    = ( maxWidth - (length (head input) ) )
+
+-- length         4 3 2 3 4
+-- start indicies 1 2 3 2 1
 
 processLine :: String -> Int -> Int -> [ Point ]
-processLine line yCoord maxLen offset
+processLine line yCoord offset
   | null line           = []
   | otherwise           = pt : next
   where
     pt    = ( Point xCoord yCoord )
-    next  = ( processLine (tail line) yCoord maxLen )
+    next  = ( processLine (tail line) yCoord offset )
     xCoord= ( offset + (length line) )
 
 -- ****************************************************
