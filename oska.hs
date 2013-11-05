@@ -35,18 +35,31 @@ right = 0
 --bestSate :: [ State ] -> State
 ---- nextStates, return bestState
 
---sortState state1 state2
---  | (hVal state1) > (hVal state2)   = GT
---  | otherwise                       = LT
+breadthSearch :: [ State ] -> [ [ State ] ]
+breadthSearch states
+  | null states             = []
+  | otherwise               = (sortBy sortState new) : next
+  where
+    new  = ( movesForState (head states) )
+    next = (breadthSearch (tail states))
+
+-- when we add heuristic we can do minMax based on turn
+-- and then pick the head of the sorted list or the last
+-- for the worst val
+sortState state1 state2
+  | (turn state1) > (turn state2)   = GT
+  | otherwise                       = LT
 
 ---- ****************************************************
 ---- State Level Logic
 ---- ****************************************************
 
+
+
 movesForState :: State -> [ State ]
 movesForState state
-  | (turn state) == white = possibleMoves (whites state) state
-  | otherwise             = possibleMoves (blacks state) state
+  | (turn state) == white   = possibleMoves (whites state) state
+  | otherwise               = possibleMoves (blacks state) state
 
 possibleMoves :: [ Point ] -> State -> [ State ]
 possibleMoves pts state
@@ -106,9 +119,11 @@ stateAfterMove pt dir state
 
 replacePointForState :: Point -> Point -> State -> State
 replacePointForState pt newPt state
-  | elem pt ( whites state ) = State (replacePoint pt newPt (whites state)) (blacks state) (board state) (turn state)
-  | elem pt ( blacks state ) = State (whites state) (replacePoint pt newPt (blacks state)) (board state) (turn state)
+  | elem pt ( whites state ) = State (replacePoint pt newPt (whites state)) (blacks state) (board state) nextTurn
+  | elem pt ( blacks state ) = State (whites state) (replacePoint pt newPt (blacks state)) (board state) nextTurn
   | otherwise                = state
+  where
+    nextTurn = ( (-1) * (turn state) )
 
 removePointForState :: Point -> State -> State
 removePointForState pt state
@@ -237,23 +252,27 @@ t_validMovesForPoint = trueTests && (not falseTests)
     trueTests = t_validMovesForPoint1 && t_validMovesForPoint2
     falseTests= False
 
-t_validMovesForPoint1 = correctLength && newState
+t_validMovesForPoint1 = correctLength && newStates && newTurns
   where
     validMoves    = validMovesForPoint (head whiteList) firstState
     correctLength = (length validMoves) == 1
-    newState      = not (elem firstState validMoves)
+    newStates      = not (elem firstState validMoves)
+    newTurns      = not (elem (turn firstState) (map turn validMoves))
 
-t_validMovesForPoint2 = correctLength && newState
+t_validMovesForPoint2 = correctLength && newStates && newTurns
   where
     validMoves    = (validMovesForPoint (nth whiteList 0 1) firstState)
     correctLength = (length validMoves) == 2
-    newState      = not (elem firstState validMoves)
+    newStates      = not (elem firstState validMoves)
+    newTurns      = not (elem (turn firstState) (map turn validMoves))
+
 
 -- stateAfterMove :: Point -> Int -> State (returns inital if not available)
-t_stateAfterMoveWL = same
+t_stateAfterMoveWL = same && newTurn
   where
     same        = movedState == blockedStateW
     movedState  = (stateAfterMove (head (whites blockedStateW)) left  blockedStateW)
+    newTurn     = (turn blockedStateW) /= (turn movedState)
 
 t_stateAfterMoveBL = stateAfterMove (head (blacks blockedStateB)) left  blockedStateB
 t_stateAfterMoveWR = stateAfterMove (head (whites firstState)) right firstState
