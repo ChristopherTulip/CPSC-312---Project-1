@@ -34,28 +34,22 @@ data Point = Point {
 ---- State Level Logic
 ---- ****************************************************
 
---movesForState :: State -> [ State ]
----- currentState, return possibleStates
-----
----- for each Point get nextStates
-----
-
---getHeuristicValue :: State -> Int
----- currentState, return value
-
--- ****************************************************
--- Point Interactions
--- ****************************************************
-
---trimInvalidMoves :: [ Point ] -> State -> [ Point ]
---trimInvalidMoves pts state
---  | (validMove (head pts) state)  =
---  | otherwise                     =
+movesForState :: State -> [ State ]
+movesForState state
+  | (turn state) == white = possibleMoves (whites state) state
+  | otherwise             = possibleMoves (blacks state) state
 
 possibleMoves :: [ Point ] -> State -> [ State ]
 possibleMoves pts state
   | null pts                = []
-  | otherwise               = merge (validMovesForPoint (head pts) state) (possibleMoves (tail pts) state)
+  | otherwise               = merge validMoves next
+  where
+    validMoves = (validMovesForPoint (head pts) state)
+    next       = (possibleMoves (tail pts) state)
+
+-- ****************************************************
+-- Point Interactions
+-- ****************************************************
 
 validMovesForPoint :: Point -> State -> [ State ]
 validMovesForPoint pt state = merge jumpStates moveStates
@@ -130,15 +124,14 @@ replacePoint pt newPt pts
 -- Point Level Logic (Eg. Moves)
 -- ****************************************************
 
--- currentPoint, currentState, return canJump?
 canJump :: Point -> Int -> State -> Bool
-canJump pt dir state = bounded && blocked
+canJump pt dir state = bounded && blocked && clear
   where
     nextPoint = jump pt dir (turn state)
-    blocked   = pointTaken (move pt dir (turn state)) state
+    blocked   = elem (move pt dir (turn state)) (otherPts state)
     bounded   = (pointInBounds nextPoint state)
+    clear     = not (pointTaken nextPoint state)
 
--- currentPoint, currentState, return canJump?
 canMove :: Point -> Int -> State -> Bool
 canMove pt dir state = bounded && clear
   where
@@ -161,99 +154,8 @@ move old direction turn
 -- currentPoint, direction, turn, return movedPoint
 jump :: Point -> Int -> Int -> Point
 jump old direction turn
-  | turn == white     = ( Point ( (x old) + direction ) ( (y old) + 2 ) )
-  | otherwise         = ( Point ( (x old) + direction ) ( (y old) - 2 ) )
-
--- ****************************************************
--- Tests
--- ****************************************************
-
--- validMovesForPoint :: Point -> State -> [ State ]
-t_validMovesForPoint1 = validMovesForPoint (head whiteList) firstState
-t_validMovesForPoint2 = validMovesForPoint (nth whiteList 0 1) firstState
-t_validMovesForPoint3 = validMovesForPoint (nth whiteList 0 2) firstState
-t_validMovesForPoint4 = validMovesForPoint (nth whiteList 0 3) firstState
-
-
--- stateAfterMove :: Point -> Int -> State
-t_stateAfterMoveWL = stateAfterMove (head (whites blockedStateW)) left  blockedStateW
-t_stateAfterMoveBL = stateAfterMove (head (blacks blockedStateB)) left  blockedStateB
-t_stateAfterMoveWR = stateAfterMove (head (whites blockedStateW)) right blockedStateW
-t_stateAfterMoveBR = stateAfterMove (head (blacks blockedStateB)) right blockedStateB
-
--- stateAfterJump :: Point -> Int -> State
-t_stateAfterJumpWL = stateAfterJump (head (whites blockedStateW)) left  blockedStateW
-t_stateAfterJumpBL = stateAfterJump (head (blacks blockedStateB)) left  blockedStateB
-t_stateAfterJumpWR = stateAfterJump (head (whites blockedStateW)) right blockedStateW
-t_stateAfterJumpBR = stateAfterJump (head (blacks blockedStateB)) right blockedStateB
-
--- replacePointForState :: Point -> Point -> State -> State
-t_replacePointForState = replacePointForState (head whiteList) (Point 10 10) firstState
-
--- removePointForState :: Point -> State -> State
-t_removePointForState = removePointForState (head whiteList) firstState
-
--- removePoint :: Point ->[ Point ] -> [ Point ]
-t_removePointH   = removePoint (head whiteList) whiteList
-t_removePointL   = removePoint (last whiteList) whiteList
-
--- replacePoint :: Point -> Point -> [ Point ] -> [ Point ]
-t_replacePointH  = replacePoint (head whiteList) (Point 10 10) whiteList
-t_replacePointL  = replacePoint (last whiteList) (Point 10 10) whiteList
-
--- canMove :: Point -> Int -> State -> Bool
-t_canMoveT    = canMove (head (whites firstState)) left firstState
-t_canMoveFB   = canMove (head (whites blockedStateW)) right blockedStateW
-t_canMoveFOOB = canMove (head (whites blockedStateW)) left blockedStateW
-
--- canJump :: Point -> Int -> State -> Bool
-t_canJumpT    = canJump (head (whites blockedStateW)) right blockedStateW
-t_canJumpFOOB = canJump (head (whites blockedStateW)) left blockedStateW
-t_canJumpFNB  = canJump (head (whites firstState)) right firstState
-
--- pointTaken ::  Point -> State -> Bool
-t_pointTakenT = pointTaken (Point 4 3) blockedStateW
-t_pointTakenF = pointTaken (Point 1 1) blockedStateW
-
--- pointInBounds :: Point -> State -> Bool
-t_pointInBoundsT = pointInBounds (head whiteList) firstState
-t_pointInBoundsF = pointInBounds (Point 99 99) firstState
-
--- move :: Point -> Int -> Int -> Point
-t_moveLW = move p1 left  white
-t_moveRW = move p1 right white
-t_moveLB = move p5 left  black
-t_moveRB = move p5 right black
-
--- jump :: Point -> Int -> Int -> Point
-t_jumpLW = jump p1 left  white
-t_jumpRW = jump p1 right white
-t_jumpLB = jump p5 left  black
-t_jumpRB = jump p5 right black
-
--- Test Structures (Point x y)
-p1 = (Point 1 1)
-p2 = (Point 2 1)
-p3 = (Point 3 1)
-p4 = (Point 4 1)
-
-p5 = (Point 1 5)
-p6 = (Point 2 5)
-p7 = (Point 3 5)
-p8 = (Point 4 5)
-
-whiteList = (whites firstState)
-blackList = (blacks firstState)
-
-firstState = stringToState testString
-
-blockedStateW = ( State [ (Point 3 2) ] [ (Point 4 3),(Point 3 3) ] testBoard white )
-blockedStateB = ( State [ (Point 3 2) ] [ (Point 4 3),(Point 3 3) ] testBoard black )
-
-testBoard = [(Point 3 5),(Point 4 5),(Point 2 5),(Point 1 5),(Point 4 4),(Point 3 4),(Point 2 4),(Point 4 3),(Point 3 3),(Point 4 2),(Point 3 2),(Point 2 2),(Point 4 1),(Point 3 1),(Point 2 1),(Point 1 1)]
-
-
-testString = [ "wwww", "---", "--",  "---", "bbbb" ]
+  | turn == white     = ( Point ( (x old) + 2 * direction ) ( (y old) + 2 ) )
+  | otherwise         = ( Point ( (x old) - 2 * direction ) ( (y old) - 2 ) )
 
 -- ****************************************************
 -- Process Input Signal - Assumes only initial states
@@ -284,9 +186,6 @@ buildBoard input maxWidth height
     next      = ( buildBoard (tail input) maxWidth height )
     offset    = ( maxWidth - (length (head input) ) )
 
--- length         4 3 2 3 4
--- start indicies 1 2 3 2 1
-
 processLine :: String -> Int -> Int -> [ Point ]
 processLine line yCoord offset
   | null line           = []
@@ -310,11 +209,173 @@ nth arr i depth
   | i == depth  = (head arr)
   | otherwise   = nth (tail arr) (i+1) depth
 
+otherPts state
+  | (turn state) == white = (blacks state)
+  | otherwise             = (whites state)
 --
 -- Constants
 --
-white = 0
+white = -1
 black = 1
 
 left 	= 1
 right = 0
+
+-- ****************************************************
+-- Tests - using my own system that I've made up on the
+-- fly here... probs not the best solution but it works
+-- ****************************************************
+
+testSuite       = functionalTests && unitTests
+functionalTests = t_validMovesForPoint && t_removePointForState && t_removePointForState
+unitTests       = t_canJump && t_canMove && t_pointTaken && t_pointInBounds && t_move && t_jump
+
+-- validMovesForPoint :: Point -> State -> [ State ]
+t_validMovesForPoint = trueTests && (not falseTests)
+  where
+    trueTests = t_validMovesForPoint1 && t_validMovesForPoint2
+    falseTests= False
+
+t_validMovesForPoint1 = correctLength && newState
+  where
+    validMoves    = validMovesForPoint (head whiteList) firstState
+    correctLength = (length validMoves) == 1
+    newState      = not (elem firstState validMoves)
+
+t_validMovesForPoint2 = correctLength && newState
+  where
+    validMoves    = (validMovesForPoint (nth whiteList 0 1) firstState)
+    correctLength = (length validMoves) == 2
+    newState      = not (elem firstState validMoves)
+
+-- stateAfterMove :: Point -> Int -> State (returns inital if not available)
+t_stateAfterMoveWL = same
+  where
+    same        = movedState == blockedStateW
+    movedState  = (stateAfterMove (head (whites blockedStateW)) left  blockedStateW)
+
+t_stateAfterMoveBL = stateAfterMove (head (blacks blockedStateB)) left  blockedStateB
+t_stateAfterMoveWR = stateAfterMove (head (whites firstState)) right firstState
+t_stateAfterMoveBR = stateAfterMove (head (blacks firstState)) right firstState
+
+-- stateAfterJump :: Point -> Int -> State (returns inital if not available)
+t_stateAfterJumpWL = stateAfterJump (head (whites blockedStateW)) left  blockedStateW
+t_stateAfterJumpBL = stateAfterJump (head (blacks blockedStateB)) left  blockedStateB
+t_stateAfterJumpWR = stateAfterJump (last (whites blockedStateW)) right blockedStateW
+
+-- replacePointForState :: Point -> Point -> State -> State
+t_replacePointForState = elem (Point 10 10) newWhite
+  where newWhite = (whites (replacePointForState (head whiteList) (Point 10 10) firstState))
+
+-- removePointForState :: Point -> State -> State
+t_removePointForState = not (elem (head whiteList) (whites (removePointForState (head whiteList) firstState)))
+
+-- removePoint :: Point ->[ Point ] -> [ Point ]
+t_removePointH   = removePoint (head whiteList) whiteList
+t_removePointL   = removePoint (last whiteList) whiteList
+
+-- replacePoint :: Point -> Point -> [ Point ] -> [ Point ]
+t_replacePointH  = replacePoint (head whiteList) (Point 10 10) whiteList
+t_replacePointL  = replacePoint (last whiteList) (Point 10 10) whiteList
+
+--
+-- canMove :: Point -> Int -> State -> Bool
+-- Test Cases:
+-- Valid
+-- Out of Bounds
+-- Blocked
+--
+t_canMove     = trueTests && (not falseTests)
+  where
+    trueTests = t_canMoveT
+    falseTests= t_canMoveFB && t_canMoveFOOB
+
+t_canMoveT    = canMove (head (whites firstState)) right firstState
+t_canMoveFOOB = canMove (head (whites firstState)) left firstState
+t_canMoveFB   = canMove (head (whites blockedStateW)) right blockedStateW
+
+--
+-- canJump :: Point -> Int -> State -> Bool
+-- Test Cases:
+-- white jump black (T)
+-- black jump white (T)
+-- white jump white (F)
+-- Jump Destination Taken (F)
+-- Out of Bounds (F)
+-- Jump Not Blocked (F)
+--
+t_canJump     = trueTests && (not falseTests)
+  where
+    trueTests = t_canJumpWJB && t_canJumpBJW
+    falseTests= (t_canJumpWJW) && (t_canJumpJDT) && (t_canJumpOOB) && (t_canJumpNB)
+
+t_canJumpWJB  = canJump (head (whites blockedStateW)) right blockedStateW
+t_canJumpBJW  = canJump (last (blacks blockedStateB)) right blockedStateB
+t_canJumpWJW  = canJump (last (whites blockedStateW)) right blockedStateW
+t_canJumpJDT  = canJump (last (whites blockedStateW)) right blockedStateW
+t_canJumpOOB  = canJump (head (whites blockedStateW)) left  blockedStateW
+t_canJumpNB   = canJump (head (whites firstState)) right firstState
+
+--
+-- pointTaken ::  Point -> State -> Bool
+--
+t_pointTaken  = t_pointTakenT && (not t_pointTakenF)
+
+t_pointTakenT = pointTaken (Point 4 3) blockedStateW
+t_pointTakenF = pointTaken (Point 1 1) blockedStateW
+
+--
+-- pointInBounds :: Point -> State -> Bool
+--
+t_pointInBounds  = t_pointInBoundsT && (not t_pointInBoundsF)
+
+t_pointInBoundsT = pointInBounds (head whiteList) firstState
+t_pointInBoundsF = pointInBounds (Point 99 99) firstState
+
+--
+-- move :: Point -> Int -> Int -> Point
+--
+t_move = trueTests
+  where
+    trueTests = t_moveLW && t_moveRW && t_moveLB && t_moveRB
+
+t_moveLW = (move p1 left  white) == (Point 2 2)
+t_moveRW = (move p1 right white) == (Point 1 2)
+t_moveLB = (move p5 left  black) == (Point 2 4)
+t_moveRB = (move p5 right black) == (Point 1 4)
+
+--
+-- jump :: Point -> Int -> Int -> Point
+--
+t_jump = trueTests
+  where
+    trueTests = t_jumpLW && t_jumpRW && t_jumpLB && t_jumpRB
+
+t_jumpLW = (jump p1 left  white) == (Point 3 3)
+t_jumpRW = (jump p1 right white) == (Point 1 3)
+t_jumpLB = (jump p8 left  black) == (Point 2 3)
+t_jumpRB = (jump p5 right black) == (Point 1 3)
+
+-- Test Structures (Point x y)
+p1 = (Point 1 1)
+p2 = (Point 2 1)
+p3 = (Point 3 1)
+p4 = (Point 4 1)
+
+p5 = (Point 1 5)
+p6 = (Point 2 5)
+p7 = (Point 3 5)
+p8 = (Point 4 5)
+
+whiteList = (whites firstState)
+blackList = (blacks firstState)
+
+firstState = stringToState testString
+
+blockedStateW = ( State [ (Point 3 2) , (Point 3 1) ] [ (Point 4 3),(Point 3 3) ] testBoard white )
+blockedStateB = ( State [ (Point 3 2) ] [ (Point 4 3),(Point 3 3) ] testBoard black )
+
+testBoard = [(Point 3 5),(Point 4 5),(Point 2 5),(Point 1 5),(Point 4 4),(Point 3 4),(Point 2 4),(Point 4 3),(Point 3 3),(Point 4 2),(Point 3 2),(Point 2 2),(Point 4 1),(Point 3 1),(Point 2 1),(Point 1 1)]
+
+testString = [ "wwww", "---", "--",  "---", "bbbb" ]
+
