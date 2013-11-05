@@ -54,8 +54,6 @@ sortState state1 state2
 ---- State Level Logic
 ---- ****************************************************
 
-
-
 movesForState :: State -> [ State ]
 movesForState state
   | (turn state) == white   = possibleMoves (whites state) state
