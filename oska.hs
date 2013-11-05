@@ -17,6 +17,15 @@ data Point = Point {
 } deriving (Show, Eq, Ord)
 
 -- ****************************************************
+-- Constants (Don't mess with these)
+-- ****************************************************
+white = -1
+black = 1
+
+left  = 1
+right = 0
+
+-- ****************************************************
 -- Search Level Logic
 -- ****************************************************
 
@@ -212,14 +221,6 @@ nth arr i depth
 otherPts state
   | (turn state) == white = (blacks state)
   | otherwise             = (whites state)
---
--- Constants
---
-white = -1
-black = 1
-
-left 	= 1
-right = 0
 
 -- ****************************************************
 -- Tests - using my own system that I've made up on the
