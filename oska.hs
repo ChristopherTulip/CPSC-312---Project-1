@@ -7,8 +7,8 @@ import Data.List
 data State = State {
 	whites 	 :: [ Point ],
 	blacks 	 :: [ Point ],
-  board    :: [ Point ],
-	turn 		 :: Int
+    board    :: [ Point ],
+	turn 	 :: Int
 } deriving (Show, Eq, Ord)
 
 data Point = Point {
@@ -26,15 +26,149 @@ left  = 1
 right = 0
 
 -- ****************************************************
+-- Main
+-- ****************************************************
+
+--oska_x1y2 :: [String] -> Char -> Int -> [String]
+--oska_x1y2 currentState first depth
+--set the number of black and white pieces according to current state
+--set the "min" and "max" players according to who is first
+--call minimax, with min, max, and depth
+--return best state
+
+
+-- ****************************************************
 -- Search Level Logic
 -- ****************************************************
 
 --minimaxSearch :: State -> Int -> State
 ---- currentState, depth, return newState
 
---bestSate :: [ State ] -> State
+--bestState :: [ State ] -> State
 ---- nextStates, return bestState
 
+boardEvaluator :: State -> Int
+boardEvaluator state
+  | ((turn state) == -1)		= whiteBoardEvaluator(state)
+  | ((turn state) == 1)		= blackBoardEvaluator(state)
+  
+whiteBoardEvaluator :: State -> Int
+whiteBoardEvaluator state 
+  = ((piecesDiff (countWhites state (whites state)) (countBlacks state (blacks state))) 
+		+ (whiteJumpDiff state) + (whiteMoves state) + (whiteEndMoveDiff state))
+		* (whiteWinningValue state) * (whiteLosingValue state)
+		
+piecesDiff :: Int -> Int -> Int
+piecesDiff x y = x - y
+
+whiteJumpDiff :: State -> Int
+whiteJumpDiff state = (countJumps (whites state) state) - (countJumps (blacks state) state)
+
+countJumps :: [Point] -> State -> Int
+countJumps pieces state
+  | null pieces				= 0
+  | otherwise				= (heurJump (head pieces) state) + (countJumps (tail pieces) state)
+  
+heurJump :: Point -> State -> Int
+heurJump piece state
+  | twoJumps				= 2
+  | oneJump					= 1
+  | otherwise				= 0
+	where
+	  twoJumps = ((canJump piece right state) && (canJump piece left state))
+	  oneJump = ((canJump piece right state) || (canJump piece left state))
+	  
+whiteMoves :: State -> Int
+whiteMoves state = (length (movesForState state))
+
+whiteEndMoveDiff :: State -> Int
+whiteEndMoveDiff state = ((backRowWhites (whites state) state) - (backRowBlacks (blacks state) state))
+
+backRowWhites :: [Point] -> State -> Int
+backRowWhites pieces state
+  | null pieces										= 0
+  | ((y (head pieces)) == (y (last (board state))))	= (backRowWhites (tail pieces) state) + 1
+  | otherwise										= 0
+ 
+backRowBlacks :: [Point] -> State -> Int
+backRowBlacks pieces state
+  | null pieces										= 0
+  | ((y (head pieces)) == (y (last (board state))))	= (backRowBlacks (tail pieces) state) + 1
+  | otherwise										= 0
+
+whiteWinningValue :: State -> Int
+whiteWinningValue state
+  | ((hasWhiteWon state) == True)	= 10
+  | otherwise						= 1
+  
+hasWhiteWon :: State -> Bool
+hasWhiteWon state
+  | allBlackGone			= True
+  | allBackRow				= True
+	where
+	  allBlackGone = ((countWhites state (whites state)) > (countBlacks state (blacks state))) 
+						&& ((countBlacks state (blacks state)) == 0)
+	  allBackRow = (countWhites state (whites state)) == (backRowWhites (whites state) state)
+  
+whiteLosingValue :: State ->Int
+whiteLosingValue state
+  | ((hasWhiteLost state) == True)	= -10
+  | otherwise						= 1
+  
+hasWhiteLost :: State -> Bool
+hasWhiteLost state
+  | ((hasBlackWon state) == True)		= True
+  | otherwise							= False
+  
+countWhites :: State -> [Point] -> Int
+countWhites state whitePieces
+  | null whitePieces		 	= 0
+  | otherwise					= 1 + (countWhites state (tail whitePieces))
+
+blackBoardEvaluator :: State -> Int
+blackBoardEvaluator state 
+  = ((piecesDiff (countBlacks state (blacks state)) (countWhites state (whites state))) 
+		+ (blackJumpDiff state) + (blackMoves state) + (blackEndMoveDiff state))
+		* (blackWinningValue state) * (blackLosingValue state)
+
+countBlacks :: State -> [Point] -> Int
+countBlacks state blackPieces
+  | null blackPieces		 	= 0
+  | otherwise					= 1 + (countBlacks state (tail blackPieces))
+  
+blackJumpDiff :: State -> Int
+blackJumpDiff state = (countJumps (blacks state) state) - (countJumps (whites state) state)
+
+blackMoves :: State -> Int
+blackMoves state = (length (movesForState state))
+
+blackEndMoveDiff :: State -> Int
+blackEndMoveDiff state = ((backRowBlacks (blacks state) state) - (backRowWhites (whites state) state))
+
+blackWinningValue :: State ->Int
+blackWinningValue state
+  | ((hasBlackWon state) == True)	= 10
+  | otherwise						= 1
+  
+hasBlackWon :: State -> Bool
+hasBlackWon state
+  | allWhiteGone			= True
+  | allBackRow				= True
+	where
+	  allWhiteGone = ((countBlacks state (blacks state)) > (countWhites state (whites state))) 
+					&& ((countWhites state (whites state)) == 0)
+	  allBackRow = (countBlacks state (blacks state)) == (backRowBlacks (blacks state) state)
+
+blackLosingValue :: State ->Int
+blackLosingValue state
+  | ((hasBlackLost state) == True)	= -10
+  | otherwise						= 1
+  
+hasBlackLost :: State -> Bool
+hasBlackLost state
+  | ((hasWhiteWon state) == True)		= True
+  | otherwise							= False
+  
 breadthSearch :: [ State ] -> [ [ State ] ]
 breadthSearch states
   | null states             = []
@@ -193,7 +327,6 @@ buildWhites :: String -> [ Point ]
 buildWhites input
   | null input        = []
   | otherwise         = (Point (length input) 1) : buildWhites (tail input)
-
 
 buildBlacks :: String -> Int -> [ Point ]
 buildBlacks input height
