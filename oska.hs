@@ -1,3 +1,8 @@
+-- Project 1
+-- Chris Tulip 24047094
+-- Julia Litke 27807098
+
+
 import Data.List
 
 -- ****************************************************
@@ -29,8 +34,8 @@ right = 0
 -- Main
 -- ****************************************************
 
---oska_x1y2 :: [String] -> Char -> Int -> [String]
---oska_x1y2 currentState first depth
+--oska_t1v7 :: [String] -> Char -> Int -> [String]
+--oska_t1v7 currentState first depth
 --set the number of black and white pieces according to current state
 --set the "min" and "max" players according to who is first
 --call minimax, with min, max, and depth
@@ -41,16 +46,23 @@ right = 0
 -- Search Level Logic
 -- ****************************************************
 
---minimaxSearch :: State -> Int -> State
+--minimaxSearch_t1v7 :: State -> Int -> State
 ---- currentState, depth, return newState
 
 --bestState :: [ State ] -> State
----- nextStates, return bestState
+---- nextStates newState
+
+-- when we add heuristic we can do minMax based on turn
+-- and then pick the head of the sorted list or the last
+-- for the worst val
+sortState state1 state2
+  | (turn state1) > (turn state2)   = GT
+  | otherwise                       = LT
 
 boardEvaluator :: State -> Int
 boardEvaluator state
-  | ((turn state) == -1)		= whiteBoardEvaluator(state)
-  | ((turn state) == 1)		= blackBoardEvaluator(state)
+  | ((turn state) == white)		= whiteBoardEvaluator(state)
+  | ((turn state) == black)		= blackBoardEvaluator(state)
   
 whiteBoardEvaluator :: State -> Int
 whiteBoardEvaluator state 
@@ -177,12 +189,6 @@ breadthSearch states
     new  = ( movesForState (head states) )
     next = (breadthSearch (tail states))
 
--- when we add heuristic we can do minMax based on turn
--- and then pick the head of the sorted list or the last
--- for the worst val
-sortState state1 state2
-  | (turn state1) > (turn state2)   = GT
-  | otherwise                       = LT
 
 ---- ****************************************************
 ---- State Level Logic
