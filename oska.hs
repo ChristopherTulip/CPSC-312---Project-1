@@ -1,6 +1,6 @@
 -- Project 1
--- Chris Tulip 24047094
--- Julia Litke 27807098
+-- Chris Tulip 24047094 v4l7
+-- Julia Litke 27807098 t1v7
 
 
 import Data.List
@@ -22,11 +22,6 @@ data Point = Point {
 	y 		   :: Int
 } deriving (Show, Eq, Ord)
 
-data Level = Level {
-	minmax		:: String,
-	nStates		:: [ [State] ]
-} deriving (Show, Eq, Ord)
-
 -- ****************************************************
 -- Constants (Don't mess with these)
 -- ****************************************************
@@ -40,75 +35,75 @@ right = 0
 -- Main
 -- ****************************************************
 
-oska_t1v7 :: [String] -> Char -> Int -> [String]
-oska_t1v7 currentState player depth = (stateToString (minimaxSearch (stringToState currentState) "MAX" depth))
+oska_v4l7 :: [String] -> Char -> Int -> [String]
+oska_v4l7 currentState player depth = (stateToString_v4l7 (minimaxSearch_v4l7(stringToState_v4l7 currentState) "MAX" depth))
 
 -- ****************************************************
 -- Process Output Signal -- Not perfectly done time crunch
 -- got me (V4L7)
 -- ****************************************************
-stateToString :: State -> [String]
-stateToString input = repB
+stateToString_v4l7 :: State -> [String]
+stateToString_v4l7 input = repB
   where
-    repB = replaceBlacks (blacks input) repW
-    repW = (replaceWhites (whites input) brd)
-    brd  = getStringBoard (getBoardByRow (board input) (maxY (board input) 0))
+    repB = replaceBlacks_v4l7 (blacks input) repW
+    repW = (replaceWhites_v4l7 (whites input) brd)
+    brd  = getStringBoard_v4l7 (getBoardByRow_v4l7 (board input) (maxY_v4l7 (board input) 0))
 
-replaceBlacks :: [ Point ] -> [String] -> [String]
-replaceBlacks input brd
+replaceBlacks_v4l7 :: [ Point ] -> [String] -> [String]
+replaceBlacks_v4l7 input brd
   | null (tail input)   = replacement
-  | otherwise           = replaceBlacks (tail input) replacement
+  | otherwise           = replaceBlacks_v4l7 (tail input) replacement
   where
-    replacement = (replacePointWStr (x (head input)) (y (head input)) 'B' brd)
+    replacement = (replacePointWStr_v4l7 (x (head input)) (y (head input)) 'B' brd)
 
-replaceWhites :: [ Point ] -> [String] -> [String]
-replaceWhites input brd
+replaceWhites_v4l7 :: [ Point ] -> [String] -> [String]
+replaceWhites_v4l7 input brd
   | null (tail input)   = replacement
-  | otherwise           = replaceWhites (tail input) replacement
+  | otherwise           = replaceWhites_v4l7 (tail input) replacement
   where
-    replacement = (replacePointWStr (x (head input)) (y (head input)) 'W' brd)
+    replacement = (replacePointWStr_v4l7 (x (head input)) (y (head input)) 'W' brd)
 
-replacePointWStr :: Int -> Int -> Char -> [String] -> [String]
-replacePointWStr xCo yCo rep list
-  | yCo == 1            = (replaceInLine xCo rep (head list)) : (tail list)
-  | otherwise           = (head list) : (replacePointWStr xCo (yCo-1) rep (tail list) )
+replacePointWStr_v4l7 :: Int -> Int -> Char -> [String] -> [String]
+replacePointWStr_v4l7 xCo yCo rep list
+  | yCo == 1            = (replaceInLine_v4l7 xCo rep (head list)) : (tail list)
+  | otherwise           = (head list) : (replacePointWStr_v4l7 xCo (yCo-1) rep (tail list) )
 
 
-replaceInLine :: Int -> Char -> String ->String
-replaceInLine xCo rep list
+replaceInLine_v4l7 :: Int -> Char -> String ->String
+replaceInLine_v4l7 xCo rep list
   | null (tail list)      = rep : (tail list)
   | xCo == 2              = rep : (tail list)
-  | otherwise             = (head list) : (replaceInLine (xCo - 1) rep (tail list))
+  | otherwise             = (head list) : (replaceInLine_v4l7 (xCo - 1) rep (tail list))
 
-maxY :: [Point] -> Int -> Int
-maxY input bigest
-  | null input            = bigest
-  | (y (head input)) > bigest = maxY (tail input) (y (head input))
-  | otherwise             = maxY (tail input) bigest
+maxY_v4l7 :: [Point] -> Int -> Int
+maxY_v4l7 input bigest
+  | null input	    	        = bigest
+  | (y (head input)) > bigest	= maxY_v4l7 (tail input) (y (head input))
+  | otherwise             		= maxY_v4l7 (tail input) bigest
 
-getStringBoard :: [ [ Point ] ] -> [ String ]
-getStringBoard list
+getStringBoard_v4l7 :: [ [ Point ] ] -> [ String ]
+getStringBoard_v4l7 list
   | null list         = []
-  | otherwise         = (rowToString (head list)) : (getStringBoard (tail list))
+  | otherwise         = (rowToString_v4l7 (head list)) : (getStringBoard_v4l7 (tail list))
 
-rowToString :: [ Point ] -> String
-rowToString input
+rowToString_v4l7 :: [ Point ] -> String
+rowToString_v4l7 input
   | null input        = []
-  | otherwise         = '-' : rowToString (tail input)
+  | otherwise         = '-' : rowToString_v4l7 (tail input)
 
-getBoardByRow :: [Point] -> Int -> [ [Point] ]
-getBoardByRow input numRows
+getBoardByRow_v4l7 :: [Point] -> Int -> [ [Point] ]
+getBoardByRow_v4l7 input numRows
   | numRows == 0       = []
   | otherwise          = first : next
     where
-      first = (getRowFromBoard (input) numRows [])
-      next = getBoardByRow input (numRows -1)
+      first = (getRowFromBoard_v4l7 (input) numRows [])
+      next = getBoardByRow_v4l7 input (numRows -1)
 
-getRowFromBoard :: [ Point ] -> Int -> [Point] -> [ Point ]
-getRowFromBoard input rowNum retList
-  | null input        = retList
-  | (y (head input)) == rowNum = getRowFromBoard (tail input) rowNum ((head input) : retList)
-  | otherwise         = getRowFromBoard (tail input) rowNum (retList)
+getRowFromBoard_v4l7 :: [ Point ] -> Int -> [Point] -> [ Point ]
+getRowFromBoard_v4l7 input rowNum retList
+  | null input        			= retList
+  | (y (head input)) == rowNum 	= getRowFromBoard_v4l7 (tail input) rowNum ((head input) : retList)
+  | otherwise         			= getRowFromBoard_v4l7 (tail input) rowNum (retList)
 
 
 
@@ -134,334 +129,334 @@ getRowFromBoard input rowNum retList
 --5. When the values reach the top of the game tree, MAX chooses the
 ---- move indicated by the highest value
 
-minimaxSearch :: State -> String -> Int -> State
-minimaxSearch state level depth
-  | (depth == 1)				= (maxState (applyToLeaf (movesForState state)))
-  | otherwise					= (maxState
-									(minOrMax
-										(propogateMinOrMax
-										(generateTree (movesForState state) "MIN" (depth - 1)) level depth)
+minimaxSearch_v4l7 :: State -> String -> Int -> State
+minimaxSearch_v4l7 state level depth
+  | (depth == 1)				= (maxState_v4l7 (applyToLeaf_v4l7 (movesForState_v4l7 state)))
+  | otherwise					= (maxState_v4l7
+									(minOrMax_v4l7
+										(propogateMinOrMax_v4l7
+										(generateTree_v4l7 (movesForState_v4l7 state) "MIN" (depth - 1)) level depth)
 									level))
 
-generateTree :: [State] -> String -> Int -> [ [ [ State ] ] ]
-generateTree states level depth
+generateTree_v4l7 :: [State] -> String -> Int -> [ [ [ State ] ] ]
+generateTree_v4l7 states level depth
   | null states						= []
   | (depth == 0)					= []
   | otherwise						= thisLevel : nextLevel
     where
-	  thisLevel = (generateLevel (movesForState(head states)))
-	  nextLevel = (generateTree (tail states) (switchLevel level) (depth - 1))
+	  thisLevel = (generateLevel_v4l7 (movesForState_v4l7 (head states)))
+	  nextLevel = (generateTree_v4l7 (tail states) (switchLevel_v4l7 level) (depth - 1))
 
-switchLevel :: String -> String
-switchLevel level
+switchLevel_v4l7 :: String -> String
+switchLevel_v4l7 level
   | (level == "MAX")				= "MIN"
   | (level == "MIN")				= "MAX"
 
-generateLevel :: [ State ] -> [ [ State ] ]
-generateLevel states
+generateLevel_v4l7 :: [ State ] -> [ [ State ] ]
+generateLevel_v4l7 states
   | null states             = []
   | otherwise               = new : next
   where
-    new  = (movesForState (head states))
-    next = (generateLevel (tail states))
+    new  = (movesForState_v4l7 (head states))
+    next = (generateLevel_v4l7 (tail states))
 
 
-propogateMinOrMax :: [ [ [State] ] ] -> String -> Int -> [ [State] ]
-propogateMinOrMax treeOfStates level depth
+propogateMinOrMax_v4l7 :: [ [ [State] ] ] -> String -> Int -> [ [State] ]
+propogateMinOrMax_v4l7 treeOfStates level depth
   | (depth == 1)			= (head treeOfStates)
-  | otherwise				= (minOrMax (applyToLeaves (head treeOfStates)) level)
-								: (propogateMinOrMax (tail treeOfStates) (switchLevel level) (depth - 1))
+  | otherwise				= (minOrMax_v4l7 (applyToLeaves_v4l7 (head treeOfStates)) level)
+								: (propogateMinOrMax_v4l7 (tail treeOfStates) (switchLevel_v4l7 level) (depth - 1))
 
-applyToLeaves :: [ [State] ] -> [ [State] ]
-applyToLeaves bottomLevel = (map applyToLeaf bottomLevel)
+applyToLeaves_v4l7 :: [ [State] ] -> [ [State] ]
+applyToLeaves_v4l7 bottomLevel = (map applyToLeaf_v4l7 bottomLevel)
 
-applyToLeaf :: [State] -> [State]
-applyToLeaf bottomNode = (map boardEvaluator bottomNode)
+applyToLeaf_v4l7 :: [State] -> [State]
+applyToLeaf_v4l7 bottomNode = (map boardEvaluator_v4l7 bottomNode)
 
-minOrMax :: [ [State] ] -> String -> [State]
-minOrMax states level
-  | (level == "MAX")				= (map maxState states)
-  | (level == "MIN")				= (map minState states)
+minOrMax_v4l7 :: [ [State] ] -> String -> [State]
+minOrMax_v4l7 states level
+  | (level == "MAX")				= (map maxState_v4l7 states)
+  | (level == "MIN")				= (map minState_v4l7 states)
 
 
-maxState :: [State] -> State
-maxState states
+maxState_v4l7 :: [State] -> State
+maxState_v4l7 states
   | ((head states) == (last states))											= (head states)
-  | (length states == 2)														= (gState (head states) (head (tail states)))
-  | ((value (head states)) > (value (head (tail states))))						= (maxState ((head states) : (tail (tail states))))
-  | otherwise																	= (maxState (tail states))
+  | (length states == 2)														= (gState_v4l7 (head states) (head (tail states)))
+  | ((value (head states)) > (value (head (tail states))))						= (maxState_v4l7 ((head states) : (tail (tail states))))
+  | otherwise																	= (maxState_v4l7 (tail states))
 
-gState :: State -> State -> State
-gState state1 state2
+gState_v4l7 :: State -> State -> State
+gState_v4l7 state1 state2
   | ((value state1) > (value state2))			= state1
-  | otherwise			= state2
+  | otherwise									= state2
 
 
-minState :: [State] -> State
-minState states
+minState_v4l7 :: [State] -> State
+minState_v4l7 states
   | ((head states) == (last states))											= (head states)
-  | (length states == 2)														= (lState (head states) (head (tail states)))
-  | ((value (head states)) < (value (head (tail states))))						= (minState ((head states) : (tail (tail states))))
-  | otherwise																	= (minState (tail states))
+  | (length states == 2)														= (lState_v4l7 (head states) (head (tail states)))
+  | ((value (head states)) < (value (head (tail states))))						= (minState_v4l7 ((head states) : (tail (tail states))))
+  | otherwise																	= (minState_v4l7 (tail states))
 
-lState :: State -> State -> State
-lState state1 state2
+lState_v4l7 :: State -> State -> State
+lState_v4l7 state1 state2
   | ((value state1) < (value state2))			= state1
   | ((value state1) > (value state2))			= state2
 
 -- instead of turning a state into an integer, now updates state with calculated value
-boardEvaluator :: State -> State
-boardEvaluator state
-  | ((turn state) == white)		= whiteBoardEvaluator state
-  | ((turn state) == black)		= blackBoardEvaluator state
+boardEvaluator_v4l7 :: State -> State
+boardEvaluator_v4l7 state
+  | ((turn state) == white)		= whiteBoardEvaluator_v4l7 state
+  | ((turn state) == black)		= blackBoardEvaluator_v4l7 state
 
-whiteBoardEvaluator :: State -> State
-whiteBoardEvaluator state = State (whites state) (blacks state) (board state) (turn state) newValue
-	where newValue = ((piecesDiff (countWhites state (whites state)) (countBlacks state (blacks state)))
-				+ (whiteJumpDiff state) + (whiteMoves state) + (whiteEndMoveDiff state))
-				* (whiteWinningValue state) * (whiteLosingValue state)
+whiteBoardEvaluator_v4l7 :: State -> State
+whiteBoardEvaluator_v4l7 state = State (whites state) (blacks state) (board state) (turn state) newValue
+	where newValue = ((piecesDiff_v4l7 (countWhites_v4l7 state (whites state)) (countBlacks_v4l7 state (blacks state)))
+				+ (whiteJumpDiff_v4l7 state) + (whiteMoves_v4l7 state) + (whiteEndMoveDiff_v4l7 state))
+				* (whiteWinningValue_v4l7 state) * (whiteLosingValue_v4l7 state)
 
-piecesDiff :: Int -> Int -> Int
-piecesDiff x y = x - y
+piecesDiff_v4l7 :: Int -> Int -> Int
+piecesDiff_v4l7 x y = x - y
 
-whiteJumpDiff :: State -> Int
-whiteJumpDiff state = (countJumps (whites state) state) - (countJumps (blacks state) state)
+whiteJumpDiff_v4l7 :: State -> Int
+whiteJumpDiff_v4l7 state = (countJumps_v4l7 (whites state) state) - (countJumps_v4l7 (blacks state) state)
 
-countJumps :: [Point] -> State -> Int
-countJumps pieces state
+countJumps_v4l7 :: [Point] -> State -> Int
+countJumps_v4l7 pieces state
   | null pieces				= 0
-  | otherwise				= (heurJump (head pieces) state) + (countJumps (tail pieces) state)
+  | otherwise				= (heurJump_v4l7 (head pieces) state) + (countJumps_v4l7 (tail pieces) state)
 
-heurJump :: Point -> State -> Int
-heurJump piece state
+heurJump_v4l7 :: Point -> State -> Int
+heurJump_v4l7 piece state
   | twoJumps				= 2
   | oneJump					= 1
   | otherwise				= 0
 	where
-	  twoJumps = ((canJump piece right state) && (canJump piece left state))
-	  oneJump = ((canJump piece right state) || (canJump piece left state))
+	  twoJumps = ((canJump_v4l7 piece right state) && (canJump_v4l7 piece left state))
+	  oneJump = ((canJump_v4l7 piece right state) || (canJump_v4l7 piece left state))
 
-whiteMoves :: State -> Int
-whiteMoves state = (length (movesForState state))
+whiteMoves_v4l7 :: State -> Int
+whiteMoves_v4l7 state = (length (movesForState_v4l7 state))
 
-whiteEndMoveDiff :: State -> Int
-whiteEndMoveDiff state = ((backRowWhites (whites state) state) - (backRowBlacks (blacks state) state))
+whiteEndMoveDiff_v4l7 :: State -> Int
+whiteEndMoveDiff_v4l7 state = ((backRowWhites_v4l7 (whites state) state) - (backRowBlacks_v4l7 (blacks state) state))
 
-backRowWhites :: [Point] -> State -> Int
-backRowWhites pieces state
+backRowWhites_v4l7 :: [Point] -> State -> Int
+backRowWhites_v4l7 pieces state
   | null pieces										= 0
-  | ((y (head pieces)) == (y (last (board state))))	= (backRowWhites (tail pieces) state) + 1
+  | ((y (head pieces)) == (y (last (board state))))	= (backRowWhites_v4l7 (tail pieces) state) + 1
   | otherwise										= 0
 
-backRowBlacks :: [Point] -> State -> Int
-backRowBlacks pieces state
+backRowBlacks_v4l7 :: [Point] -> State -> Int
+backRowBlacks_v4l7 pieces state
   | null pieces										= 0
-  | ((y (head pieces)) == (y (last (board state))))	= (backRowBlacks (tail pieces) state) + 1
+  | ((y (head pieces)) == (y (last (board state))))	= (backRowBlacks_v4l7 (tail pieces) state) + 1
   | otherwise										= 0
 
-whiteWinningValue :: State -> Int
-whiteWinningValue state
-  | ((hasWhiteWon state) == True)	= 10
-  | otherwise						= 1
+whiteWinningValue_v4l7 :: State -> Int
+whiteWinningValue_v4l7 state
+  | ((hasWhiteWon_v4l7 state) == True)	= 10
+  | otherwise							= 1
 
-hasWhiteWon :: State -> Bool
-hasWhiteWon state
+hasWhiteWon_v4l7 :: State -> Bool
+hasWhiteWon_v4l7 state
   | allBlackGone			= True
   | allBackRow				= True
   | otherwise				= False
 	where
-	  allBlackGone = ((countWhites state (whites state)) > (countBlacks state (blacks state)))
-						&& ((countBlacks state (blacks state)) == 0)
-	  allBackRow = (countWhites state (whites state)) == (backRowWhites (whites state) state)
+	  allBlackGone = ((countWhites_v4l7 state (whites state)) > (countBlacks_v4l7 state (blacks state)))
+						&& ((countBlacks_v4l7 state (blacks state)) == 0)
+	  allBackRow = (countWhites_v4l7 state (whites state)) == (backRowWhites_v4l7 (whites state) state)
 
-whiteLosingValue :: State ->Int
-whiteLosingValue state
-  | ((hasWhiteLost state) == True)	= -10
+whiteLosingValue_v4l7 :: State ->Int
+whiteLosingValue_v4l7 state
+  | ((hasWhiteLost_v4l7 state) == True)	= -10
   | otherwise						= 1
 
-hasWhiteLost :: State -> Bool
-hasWhiteLost state
-  | ((hasBlackWon state) == True)		= True
+hasWhiteLost_v4l7 :: State -> Bool
+hasWhiteLost_v4l7 state
+  | ((hasBlackWon_v4l7 state) == True)		= True
   | otherwise							= False
 
-countWhites :: State -> [Point] -> Int
-countWhites state whitePieces
+countWhites_v4l7 :: State -> [Point] -> Int
+countWhites_v4l7 state whitePieces
   | null whitePieces		 	= 0
-  | otherwise					= 1 + (countWhites state (tail whitePieces))
+  | otherwise					= 1 + (countWhites_v4l7 state (tail whitePieces))
 
-blackBoardEvaluator :: State -> State
-blackBoardEvaluator state  = State (whites state) (blacks state) (board state) (turn state) newValue
-	where newValue = ((piecesDiff (countBlacks state (blacks state)) (countWhites state (whites state)))
-					+ (blackJumpDiff state) + (blackMoves state) + (blackEndMoveDiff state))
-					* (blackWinningValue state) * (blackLosingValue state)
+blackBoardEvaluator_v4l7 :: State -> State
+blackBoardEvaluator_v4l7 state  = State (whites state) (blacks state) (board state) (turn state) newValue
+	where newValue = ((piecesDiff_v4l7 (countBlacks_v4l7 state (blacks state)) (countWhites_v4l7 state (whites state)))
+					+ (blackJumpDiff_v4l7 state) + (blackMoves_v4l7 state) + (blackEndMoveDiff_v4l7 state))
+					* (blackWinningValue_v4l7 state) * (blackLosingValue_v4l7 state)
 
-countBlacks :: State -> [Point] -> Int
-countBlacks state blackPieces
+countBlacks_v4l7 :: State -> [Point] -> Int
+countBlacks_v4l7 state blackPieces
   | null blackPieces		 	= 0
-  | otherwise					= 1 + (countBlacks state (tail blackPieces))
+  | otherwise					= 1 + (countBlacks_v4l7 state (tail blackPieces))
 
-blackJumpDiff :: State -> Int
-blackJumpDiff state = (countJumps (blacks state) state) - (countJumps (whites state) state)
+blackJumpDiff_v4l7 :: State -> Int
+blackJumpDiff_v4l7 state = (countJumps_v4l7 (blacks state) state) - (countJumps_v4l7 (whites state) state)
 
-blackMoves :: State -> Int
-blackMoves state = (length (movesForState state))
+blackMoves_v4l7 :: State -> Int
+blackMoves_v4l7 state = (length (movesForState_v4l7 state))
 
-blackEndMoveDiff :: State -> Int
-blackEndMoveDiff state = ((backRowBlacks (blacks state) state) - (backRowWhites (whites state) state))
+blackEndMoveDiff_v4l7 :: State -> Int
+blackEndMoveDiff_v4l7 state = ((backRowBlacks_v4l7 (blacks state) state) - (backRowWhites_v4l7 (whites state) state))
 
-blackWinningValue :: State ->Int
-blackWinningValue state
-  | ((hasBlackWon state) == True)	= 10
+blackWinningValue_v4l7 :: State ->Int
+blackWinningValue_v4l7 state
+  | ((hasBlackWon_v4l7 state) == True)	= 10
   | otherwise						= 1
 
-hasBlackWon :: State -> Bool
-hasBlackWon state
+hasBlackWon_v4l7 :: State -> Bool
+hasBlackWon_v4l7 state
   | allWhiteGone			= True
   | allBackRow				= True
   | otherwise				= False
 	where
-	  allWhiteGone = ((countBlacks state (blacks state)) > (countWhites state (whites state)))
-					&& ((countWhites state (whites state)) == 0)
-	  allBackRow = (countBlacks state (blacks state)) == (backRowBlacks (blacks state) state)
+	  allWhiteGone = ((countBlacks_v4l7 state (blacks state)) > (countWhites_v4l7 state (whites state)))
+					&& ((countWhites_v4l7 state (whites state)) == 0)
+	  allBackRow = (countBlacks_v4l7 state (blacks state)) == (backRowBlacks_v4l7 (blacks state) state)
 
-blackLosingValue :: State ->Int
-blackLosingValue state
-  | ((hasBlackLost state) == True)	= -10
+blackLosingValue_v4l7 :: State ->Int
+blackLosingValue_v4l7 state
+  | ((hasBlackLost_v4l7 state) == True)	= -10
   | otherwise						= 1
 
-hasBlackLost :: State -> Bool
-hasBlackLost state
-  | ((hasWhiteWon state) == True)		= True
-  | otherwise							= False
+hasBlackLost_v4l7 :: State -> Bool
+hasBlackLost_v4l7 state
+  | ((hasWhiteWon_v4l7 state) == True)		= True
+  | otherwise								= False
 
 
 ---- ****************************************************
 ---- State Level Logic
 ---- ****************************************************
 -- V4L7
-movesForState :: State -> [ State ]
-movesForState state
-  | (turn state) == white   = possibleMoves (whites state) state
-  | otherwise               = possibleMoves (blacks state) state
+movesForState_v4l7 :: State -> [ State ]
+movesForState_v4l7 state
+  | (turn state) == white   = possibleMoves_v4l7 (whites state) state
+  | otherwise               = possibleMoves_v4l7 (blacks state) state
 -- V4L7
-possibleMoves :: [ Point ] -> State -> [ State ]
-possibleMoves pts state
+possibleMoves_v4l7 :: [ Point ] -> State -> [ State ]
+possibleMoves_v4l7 pts state
   | null pts                = []
-  | otherwise               = merge validMoves next
+  | otherwise               = merge_v4l7 validMoves next
   where
-    validMoves = (validMovesForPoint (head pts) state)
-    next       = (possibleMoves (tail pts) state)
+    validMoves = (validMovesForPoint_v4l7 (head pts) state)
+    next       = (possibleMoves_v4l7 (tail pts) state)
 
 -- ****************************************************
 -- Point Interactions
 -- ****************************************************
 -- V4L7
-validMovesForPoint :: Point -> State -> [ State ]
-validMovesForPoint pt state = merge jumpStates moveStates
+validMovesForPoint_v4l7 :: Point -> State -> [ State ]
+validMovesForPoint_v4l7 pt state = merge_v4l7 jumpStates moveStates
   where
-    jumpStates = jumpStatesForPoint pt state
-    moveStates = moveStateForPoint pt state
+    jumpStates = jumpStatesForPoint_v4l7 pt state
+    moveStates = moveStateForPoint_v4l7 pt state
 -- V4L7
-moveStateForPoint :: Point -> State -> [ State ]
-moveStateForPoint pt state
+moveStateForPoint_v4l7 :: Point -> State -> [ State ]
+moveStateForPoint_v4l7 pt state
   | both              = [leftMove, rightMove]
   | leftMove /= state = [leftMove]
   | rightMove/= state = [rightMove]
   | otherwise         = [State [(Point 999 999)] [(Point 999 999)] [(Point 999 999)] white (value state)]
   where
     both      = (leftMove /= state) && (rightMove /= state)
-    leftMove  = stateAfterMove pt left  state
-    rightMove = stateAfterMove pt right state
+    leftMove  = stateAfterMove_v4l7 pt left  state
+    rightMove = stateAfterMove_v4l7 pt right state
 -- V4L7
-jumpStatesForPoint :: Point -> State -> [ State ]
-jumpStatesForPoint pt state
+jumpStatesForPoint_v4l7 :: Point -> State -> [ State ]
+jumpStatesForPoint_v4l7 pt state
   | both              = [leftJump, rightJump]
   | leftJump /= state = [leftJump]
   | rightJump/= state = [rightJump]
   | otherwise         = []
   where
     both      = (leftJump /= state) && (rightJump /= state)
-    leftJump  = stateAfterJump pt left  state
-    rightJump = stateAfterJump pt right state
+    leftJump  = stateAfterJump_v4l7 pt left  state
+    rightJump = stateAfterJump_v4l7 pt right state
 -- V4L7
-stateAfterJump :: Point -> Int -> State -> State
-stateAfterJump pt dir state
+stateAfterJump_v4l7 :: Point -> Int -> State -> State
+stateAfterJump_v4l7 pt dir state
   | whiteJump         = State (whites next) (blacks cleanState) (board state) black (value state)
   | blackJump         = State (whites cleanState) (blacks next) (board state) white (value state)
   | otherwise         = state
   where
-    whiteJump   = (canJump pt dir state) && ( (turn state) == white )
-    blackJump   = (canJump pt dir state) && ( (turn state) == black )
-    next        = replacePointForState pt ( jump pt dir ( turn state ) ) state
-    cleanState  = removePointForState ( move pt dir ( turn state ) ) state
+    whiteJump   = (canJump_v4l7 pt dir state) && ( (turn state) == white )
+    blackJump   = (canJump_v4l7 pt dir state) && ( (turn state) == black )
+    next        = replacePointForState_v4l7 pt ( jump_v4l7 pt dir ( turn state ) ) state
+    cleanState  = removePointForState_v4l7 ( move_v4l7 pt dir ( turn state ) ) state
 -- V4L7
-stateAfterMove :: Point -> Int -> State -> State
-stateAfterMove pt dir state
-  | (canMove pt dir state)  = replacePointForState pt ( move pt dir ( turn state ) ) state
+stateAfterMove_v4l7 :: Point -> Int -> State -> State
+stateAfterMove_v4l7 pt dir state
+  | (canMove_v4l7 pt dir state)  = replacePointForState_v4l7 pt ( move_v4l7 pt dir ( turn state ) ) state
   | otherwise               = state
 -- V4L7
-replacePointForState :: Point -> Point -> State -> State
-replacePointForState pt newPt state
-  | elem pt ( whites state ) = State (replacePoint pt newPt (whites state)) (blacks state) (board state) nextTurn (value state)
-  | elem pt ( blacks state ) = State (whites state) (replacePoint pt newPt (blacks state)) (board state) nextTurn (value state)
+replacePointForState_v4l7 :: Point -> Point -> State -> State
+replacePointForState_v4l7 pt newPt state
+  | elem pt ( whites state ) = State (replacePoint_v4l7 pt newPt (whites state)) (blacks state) (board state) nextTurn (value state)
+  | elem pt ( blacks state ) = State (whites state) (replacePoint_v4l7 pt newPt (blacks state)) (board state) nextTurn (value state)
   | otherwise                = state
   where
     nextTurn = ( (-1) * (turn state) )
 -- V4L7
-removePointForState :: Point -> State -> State
-removePointForState pt state
-  | elem pt ( whites state ) = State (removePoint pt (whites state)) (blacks state) (board state) (turn state) (value state)
-  | elem pt ( blacks state ) = State (whites state) (removePoint pt (blacks state)) (board state) (turn state) (value state)
+removePointForState_v4l7 :: Point -> State -> State
+removePointForState_v4l7 pt state
+  | elem pt ( whites state ) = State (removePoint_v4l7 pt (whites state)) (blacks state) (board state) (turn state) (value state)
+  | elem pt ( blacks state ) = State (whites state) (removePoint_v4l7 pt (blacks state)) (board state) (turn state) (value state)
   | otherwise                = state
 
 -- V4L7
-removePoint :: Point ->[ Point ] -> [ Point ]
-removePoint pt pts
+removePoint_v4l7 :: Point ->[ Point ] -> [ Point ]
+removePoint_v4l7 pt pts
   | (null pts)                    = []
   | pt == (head pts)              = (tail pts)
-  | otherwise                     = (head pts) : removePoint pt (tail pts)
+  | otherwise                     = (head pts) : removePoint_v4l7 pt (tail pts)
 -- V4L7
-replacePoint :: Point -> Point -> [ Point ] -> [ Point ]
-replacePoint pt newPt pts
+replacePoint_v4l7 :: Point -> Point -> [ Point ] -> [ Point ]
+replacePoint_v4l7 pt newPt pts
   | (null pts)                    = []
   | pt == (head pts)              = newPt : (tail pts)
-  | otherwise                     = (head pts) : (replacePoint pt newPt (tail pts))
+  | otherwise                     = (head pts) : (replacePoint_v4l7 pt newPt (tail pts))
 
 -- ****************************************************
 -- Point Level Logic (Eg. Moves)
 -- ****************************************************
 -- V4L7
-canJump :: Point -> Int -> State -> Bool
-canJump pt dir state = bounded && blocked && clear
+canJump_v4l7 :: Point -> Int -> State -> Bool
+canJump_v4l7 pt dir state = bounded && blocked && clear
   where
-    nextPoint = jump pt dir (turn state)
-    blocked   = elem (move pt dir (turn state)) (otherPts state)
-    bounded   = (pointInBounds nextPoint state)
-    clear     = not (pointTaken nextPoint state)
+    nextPoint = jump_v4l7 pt dir (turn state)
+    blocked   = elem (move_v4l7 pt dir (turn state)) (otherPts_v4l7 state)
+    bounded   = (pointInBounds_v4l7 nextPoint state)
+    clear     = not (pointTaken_v4l7 nextPoint state)
 -- V4L7
-canMove :: Point -> Int -> State -> Bool
-canMove pt dir state = bounded && clear
+canMove_v4l7 :: Point -> Int -> State -> Bool
+canMove_v4l7 pt dir state = bounded && clear
   where
-    nextPoint = move pt dir (turn state)
-    bounded   = (pointInBounds nextPoint state)
-    clear     = not (pointTaken nextPoint state)
+    nextPoint = move_v4l7 pt dir (turn state)
+    bounded   = (pointInBounds_v4l7 nextPoint state)
+    clear     = not (pointTaken_v4l7 nextPoint state)
 -- V4L7
-pointInBounds :: Point -> State -> Bool
-pointInBounds point state = ( elem point (board state) )
+pointInBounds_v4l7 :: Point -> State -> Bool
+pointInBounds_v4l7 point state = ( elem point (board state) )
 
 -- V4L7
-pointTaken ::  Point -> State -> Bool
-pointTaken point state  = ( elem point (blacks state) ) || ( elem point (whites state) )
+pointTaken_v4l7 ::  Point -> State -> Bool
+pointTaken_v4l7 point state  = ( elem point (blacks state) ) || ( elem point (whites state) )
 
 -- currentPoint, direction, turn, return movedPoint
-move :: Point -> Int -> Int -> Point
-move old direction turn
+move_v4l7 :: Point -> Int -> Int -> Point
+move_v4l7 old direction turn
   | turn == white     = ( Point ( (x old) + direction ) ( (y old) + 1 ) )
   | otherwise         = ( Point ( (x old) + direction ) ( (y old) - 1 ) )
 
 -- currentPoint, direction, turn, return movedPoint
-jump :: Point -> Int -> Int -> Point
-jump old direction turn
+jump_v4l7 :: Point -> Int -> Int -> Point
+jump_v4l7 old direction turn
   | turn == white     = ( Point ( (x old) + 2 * direction ) ( (y old) + 2 ) )
   | otherwise         = ( Point ( (x old) - 2 * direction ) ( (y old) - 2 ) )
 
@@ -469,58 +464,58 @@ jump old direction turn
 -- Process Input Signal - Assumes only initial states
 -- ****************************************************
 -- V4L7
-stringToState :: [String] -> State
-stringToState input = ( State whites blacks board white 0 )
+stringToState_v4l7 :: [String] -> State
+stringToState_v4l7 input = ( State whites blacks board white 0 )
   where
-    whites = (buildWhites (head input) )
-    blacks = (buildBlacks (last input) (length input) )
-    board  = (buildBoard input ( length (head input) ) (length input) )
+    whites = (buildWhites_v4l7 (head input) )
+    blacks = (buildBlacks_v4l7 (last input) (length input) )
+    board  = (buildBoard_v4l7 input ( length (head input) ) (length input) )
 -- V4L7
-buildWhites :: String -> [ Point ]
-buildWhites input
+buildWhites_v4l7 :: String -> [ Point ]
+buildWhites_v4l7 input
   | null input        = []
-  | otherwise         = (Point (length input) 1) : buildWhites (tail input)
+  | otherwise         = (Point (length input) 1) : buildWhites_v4l7 (tail input)
 -- V4L7
-buildBlacks :: String -> Int -> [ Point ]
-buildBlacks input height
+buildBlacks_v4l7 :: String -> Int -> [ Point ]
+buildBlacks_v4l7 input height
   | null input        = []
-  | otherwise         = (Point (length input) height) : (buildBlacks (tail input) height)
+  | otherwise         = (Point (length input) height) : (buildBlacks_v4l7 (tail input) height)
 -- V4L7
-buildBoard :: [ String ] -> Int -> Int -> [ Point ]
-buildBoard input maxWidth height
+buildBoard_v4l7 :: [ String ] -> Int -> Int -> [ Point ]
+buildBoard_v4l7 input maxWidth height
   | null input        = []
-  | otherwise         = merge ( processLine (head input) (length input) offset ) next
+  | otherwise         = merge_v4l7 ( processLine_v4l7 (head input) (length input) offset ) next
   where
-    next      = ( buildBoard (tail input) maxWidth height )
+    next      = ( buildBoard_v4l7 (tail input) maxWidth height )
     offset    = ( maxWidth - (length (head input) ) )
 -- V4L7
-processLine :: String -> Int -> Int -> [ Point ]
-processLine line yCoord offset
+processLine_v4l7 :: String -> Int -> Int -> [ Point ]
+processLine_v4l7 line yCoord offset
   | null line           = []
   | otherwise           = pt : next
   where
     pt    = ( Point xCoord yCoord )
-    next  = ( processLine (tail line) yCoord offset )
+    next  = ( processLine_v4l7 (tail line) yCoord offset )
     xCoord= ( offset + (length line) )
 
 -- ****************************************************
 -- Helpers
 -- ****************************************************
 -- V4L7
-merge :: [a] -> [a] -> [a]
-merge [] []               = []
-merge xs []               = xs
-merge [] ys               = ys
-merge (x:xs) (y:ys)       = x : y : merge xs ys
+merge_v4l7 :: [a] -> [a] -> [a]
+merge_v4l7 [] []               = []
+merge_v4l7 xs []               = xs
+merge_v4l7 [] ys               = ys
+merge_v4l7 (x:xs) (y:ys)       = x : y : merge_v4l7 xs ys
 
 -- V4L7
-nth :: [a] -> Int -> Int -> a
-nth arr i depth
+nth_v4l7 :: [a] -> Int -> Int -> a
+nth_v4l7 arr i depth
   | i == depth  = (head arr)
-  | otherwise   = nth (tail arr) (i+1) depth
+  | otherwise   = nth_v4l7 (tail arr) (i+1) depth
 
 -- V4L7
-otherPts state
+otherPts_v4l7 state
   | (turn state) == white = (blacks state)
   | otherwise             = (whites state)
 
@@ -530,61 +525,61 @@ otherPts state
 -- ****************************************************
 
 -- All tests written by V4L7
-testSuite       = functionalTests && unitTests
-functionalTests = t_validMovesForPoint && t_removePointForState && t_removePointForState
-unitTests       = t_canJump && t_canMove && t_pointTaken && t_pointInBounds && t_move && t_jump
+testSuite_v4l7       = functionalTests_v4l7 && unitTests_v4l7
+functionalTests_v4l7 = t_validMovesForPoint_v4l7 && t_removePointForState_v4l7 && t_removePointForState_v4l7
+unitTests_v4l7       = t_canJump_v4l7 && t_canMove_v4l7 && t_pointTaken_v4l7 && t_pointInBounds_v4l7 && t_move_v4l7 && t_jump_v4l7
 
 -- validMovesForPoint :: Point -> State -> [ State ]
-t_validMovesForPoint = trueTests && (not falseTests)
+t_validMovesForPoint_v4l7 = trueTests && (not falseTests)
   where
-    trueTests = t_validMovesForPoint1 && t_validMovesForPoint2
+    trueTests = t_validMovesForPoint1_v4l7 && t_validMovesForPoint2_v4l7
     falseTests= False
 
-t_validMovesForPoint1 = correctLength && newStates && newTurns
+t_validMovesForPoint1_v4l7 = correctLength && newStates && newTurns
   where
-    validMoves    = validMovesForPoint (head whiteList) firstState
+    validMoves    = validMovesForPoint_v4l7 (head whiteList) firstState
     correctLength = (length validMoves) == 1
     newStates      = not (elem firstState validMoves)
     newTurns      = not (elem (turn firstState) (map turn validMoves))
 
-t_validMovesForPoint2 = correctLength && newStates && newTurns
+t_validMovesForPoint2_v4l7 = correctLength && newStates && newTurns
   where
-    validMoves    = (validMovesForPoint (nth whiteList 0 1) firstState)
+    validMoves    = (validMovesForPoint_v4l7 (nth_v4l7 whiteList 0 1) firstState)
     correctLength = (length validMoves) == 2
     newStates      = not (elem firstState validMoves)
     newTurns      = not (elem (turn firstState) (map turn validMoves))
 
 
 -- stateAfterMove :: Point -> Int -> State (returns inital if not available)
-t_stateAfterMoveWL = same && newTurn
+t_stateAfterMoveWL_v4l7 = same && newTurn
   where
     same        = movedState == blockedStateW
-    movedState  = (stateAfterMove (head (whites blockedStateW)) left  blockedStateW)
+    movedState  = (stateAfterMove_v4l7 (head (whites blockedStateW)) left  blockedStateW)
     newTurn     = (turn blockedStateW) /= (turn movedState)
 
-t_stateAfterMoveBL = stateAfterMove (head (blacks blockedStateB)) left  blockedStateB
-t_stateAfterMoveWR = stateAfterMove (head (whites firstState)) right firstState
-t_stateAfterMoveBR = stateAfterMove (head (blacks firstState)) right firstState
+t_stateAfterMoveBL_v4l7 = stateAfterMove_v4l7 (head (blacks blockedStateB)) left  blockedStateB
+t_stateAfterMoveWR_v4l7 = stateAfterMove_v4l7 (head (whites firstState)) right firstState
+t_stateAfterMoveBR_v4l7 = stateAfterMove_v4l7 (head (blacks firstState)) right firstState
 
 -- stateAfterJump :: Point -> Int -> State (returns inital if not available)
-t_stateAfterJumpWL = stateAfterJump (head (whites blockedStateW)) left  blockedStateW
-t_stateAfterJumpBL = stateAfterJump (head (blacks blockedStateB)) left  blockedStateB
-t_stateAfterJumpWR = stateAfterJump (last (whites blockedStateW)) right blockedStateW
+t_stateAfterJumpWL_v4l7 = stateAfterJump_v4l7 (head (whites blockedStateW)) left  blockedStateW
+t_stateAfterJumpBL_v4l7 = stateAfterJump_v4l7 (head (blacks blockedStateB)) left  blockedStateB
+t_stateAfterJumpWR_v4l7 = stateAfterJump_v4l7 (last (whites blockedStateW)) right blockedStateW
 
 -- replacePointForState :: Point -> Point -> State -> State
-t_replacePointForState = elem (Point 10 10) newWhite
-  where newWhite = (whites (replacePointForState (head whiteList) (Point 10 10) firstState))
+t_replacePointForState_v4l7 = elem (Point 10 10) newWhite
+  where newWhite = (whites (replacePointForState_v4l7 (head whiteList) (Point 10 10) firstState))
 
 -- removePointForState :: Point -> State -> State
-t_removePointForState = not (elem (head whiteList) (whites (removePointForState (head whiteList) firstState)))
+t_removePointForState_v4l7 = not (elem (head whiteList) (whites (removePointForState_v4l7 (head whiteList) firstState)))
 
 -- removePoint :: Point ->[ Point ] -> [ Point ]
-t_removePointH   = removePoint (head whiteList) whiteList
-t_removePointL   = removePoint (last whiteList) whiteList
+t_removePointH_v4l7   = removePoint_v4l7 (head whiteList) whiteList
+t_removePointL_v4l7   = removePoint_v4l7 (last whiteList) whiteList
 
 -- replacePoint :: Point -> Point -> [ Point ] -> [ Point ]
-t_replacePointH  = replacePoint (head whiteList) (Point 10 10) whiteList
-t_replacePointL  = replacePoint (last whiteList) (Point 10 10) whiteList
+t_replacePointH_v4l7  = replacePoint_v4l7 (head whiteList) (Point 10 10) whiteList
+t_replacePointL_v4l7  = replacePoint_v4l7 (last whiteList) (Point 10 10) whiteList
 
 --
 -- canMove :: Point -> Int -> State -> Bool
@@ -593,14 +588,14 @@ t_replacePointL  = replacePoint (last whiteList) (Point 10 10) whiteList
 -- Out of Bounds
 -- Blocked
 --
-t_canMove     = trueTests && (not falseTests)
+t_canMove_v4l7     = trueTests && (not falseTests)
   where
-    trueTests = t_canMoveT
-    falseTests= t_canMoveFB && t_canMoveFOOB
+    trueTests = t_canMoveT_v4l7
+    falseTests= t_canMoveFB_v4l7 && t_canMoveFOOB_v4l7
 
-t_canMoveT    = canMove (head (whites firstState)) right firstState
-t_canMoveFOOB = canMove (head (whites firstState)) left firstState
-t_canMoveFB   = canMove (head (whites blockedStateW)) right blockedStateW
+t_canMoveT_v4l7    = canMove_v4l7 (head (whites firstState)) right firstState
+t_canMoveFOOB_v4l7 = canMove_v4l7 (head (whites firstState)) left firstState
+t_canMoveFB_v4l7   = canMove_v4l7 (head (whites blockedStateW)) right blockedStateW
 
 --
 -- canJump :: Point -> Int -> State -> Bool
@@ -612,57 +607,57 @@ t_canMoveFB   = canMove (head (whites blockedStateW)) right blockedStateW
 -- Out of Bounds (F)
 -- Jump Not Blocked (F)
 --
-t_canJump     = trueTests && (not falseTests)
+t_canJump_v4l7     = trueTests && (not falseTests)
   where
-    trueTests = t_canJumpWJB && t_canJumpBJW
-    falseTests= (t_canJumpWJW) && (t_canJumpJDT) && (t_canJumpOOB) && (t_canJumpNB)
+    trueTests = t_canJumpWJB_v4l7 && t_canJumpBJW_v4l7
+    falseTests= (t_canJumpWJW_v4l7) && (t_canJumpJDT_v4l7) && (t_canJumpOOB_v4l7) && (t_canJumpNB_v4l7)
 
-t_canJumpWJB  = canJump (head (whites blockedStateW)) right blockedStateW
-t_canJumpBJW  = canJump (last (blacks blockedStateB)) right blockedStateB
-t_canJumpWJW  = canJump (last (whites blockedStateW)) right blockedStateW
-t_canJumpJDT  = canJump (last (whites blockedStateW)) right blockedStateW
-t_canJumpOOB  = canJump (head (whites blockedStateW)) left  blockedStateW
-t_canJumpNB   = canJump (head (whites firstState)) right firstState
+t_canJumpWJB_v4l7  = canJump_v4l7 (head (whites blockedStateW)) right blockedStateW
+t_canJumpBJW_v4l7  = canJump_v4l7 (last (blacks blockedStateB)) right blockedStateB
+t_canJumpWJW_v4l7  = canJump_v4l7 (last (whites blockedStateW)) right blockedStateW
+t_canJumpJDT_v4l7  = canJump_v4l7 (last (whites blockedStateW)) right blockedStateW
+t_canJumpOOB_v4l7  = canJump_v4l7 (head (whites blockedStateW)) left  blockedStateW
+t_canJumpNB_v4l7   = canJump_v4l7 (head (whites firstState)) right firstState
 
 --
 -- pointTaken ::  Point -> State -> Bool
 --
-t_pointTaken  = t_pointTakenT && (not t_pointTakenF)
+t_pointTaken_v4l7  = t_pointTakenT_v4l7 && (not t_pointTakenF_v4l7)
 
-t_pointTakenT = pointTaken (Point 4 3) blockedStateW
-t_pointTakenF = pointTaken (Point 1 1) blockedStateW
+t_pointTakenT_v4l7 = pointTaken_v4l7 (Point 4 3) blockedStateW
+t_pointTakenF_v4l7 = pointTaken_v4l7 (Point 1 1) blockedStateW
 
 --
 -- pointInBounds :: Point -> State -> Bool
 --
-t_pointInBounds  = t_pointInBoundsT && (not t_pointInBoundsF)
+t_pointInBounds_v4l7  = t_pointInBoundsT_v4l7 && (not t_pointInBoundsF_v4l7)
 
-t_pointInBoundsT = pointInBounds (head whiteList) firstState
-t_pointInBoundsF = pointInBounds (Point 99 99) firstState
+t_pointInBoundsT_v4l7 = pointInBounds_v4l7 (head whiteList) firstState
+t_pointInBoundsF_v4l7 = pointInBounds_v4l7 (Point 99 99) firstState
 
 --
 -- move :: Point -> Int -> Int -> Point
 --
-t_move = trueTests
+t_move_v4l7 = trueTests
   where
-    trueTests = t_moveLW && t_moveRW && t_moveLB && t_moveRB
+    trueTests = t_moveLW_v4l7 && t_moveRW_v4l7 && t_moveLB_v4l7 && t_moveRB_v4l7
 
-t_moveLW = (move p1 left  white) == (Point 2 2)
-t_moveRW = (move p1 right white) == (Point 1 2)
-t_moveLB = (move p5 left  black) == (Point 2 4)
-t_moveRB = (move p5 right black) == (Point 1 4)
+t_moveLW_v4l7 = (move_v4l7 p1 left  white) == (Point 2 2)
+t_moveRW_v4l7 = (move_v4l7 p1 right white) == (Point 1 2)
+t_moveLB_v4l7 = (move_v4l7 p5 left  black) == (Point 2 4)
+t_moveRB_v4l7 = (move_v4l7 p5 right black) == (Point 1 4)
 
 --
 -- jump :: Point -> Int -> Int -> Point
 --
-t_jump = trueTests
+t_jump_v4l7 = trueTests
   where
-    trueTests = t_jumpLW && t_jumpRW && t_jumpLB && t_jumpRB
+    trueTests = t_jumpLW_v4l7 && t_jumpRW_v4l7 && t_jumpLB_v4l7 && t_jumpRB_v4l7
 
-t_jumpLW = (jump p1 left  white) == (Point 3 3)
-t_jumpRW = (jump p1 right white) == (Point 1 3)
-t_jumpLB = (jump p8 left  black) == (Point 2 3)
-t_jumpRB = (jump p5 right black) == (Point 1 3)
+t_jumpLW_v4l7 = (jump_v4l7 p1 left  white) == (Point 3 3)
+t_jumpRW_v4l7 = (jump_v4l7 p1 right white) == (Point 1 3)
+t_jumpLB_v4l7 = (jump_v4l7 p8 left  black) == (Point 2 3)
+t_jumpRB_v4l7 = (jump_v4l7 p5 right black) == (Point 1 3)
 
 -- Test Structures (Point x y)
 p1 = (Point 1 1)
@@ -678,7 +673,7 @@ p8 = (Point 4 5)
 whiteList = (whites firstState)
 blackList = (blacks firstState)
 
-firstState = stringToState testString
+firstState = stringToState_v4l7 testString
 
 blockedStateW = ( State [ (Point 3 2) , (Point 3 1) ] [ (Point 4 3),(Point 3 3) ] testBoard white 0)
 blockedStateB = ( State [ (Point 3 2) ] [ (Point 4 3),(Point 3 3) ] testBoard black 0)
