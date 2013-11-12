@@ -13,12 +13,18 @@ data State = State {
 	whites 	 :: [ Point ],
 	blacks 	 :: [ Point ],
     board    :: [ Point ],
-	turn 	 :: Int
+	turn 	 :: Int,
+	value	 :: Int
 } deriving (Show, Eq, Ord)
 
 data Point = Point {
 	x 		   :: Int,
 	y 		   :: Int
+} deriving (Show, Eq, Ord)
+
+data Level = Level {
+	minmax		:: String,
+	nStates		:: [ [State] ]
 } deriving (Show, Eq, Ord)
 
 -- ****************************************************
@@ -35,40 +41,113 @@ right = 0
 -- ****************************************************
 
 --oska_t1v7 :: [String] -> Char -> Int -> [String]
---oska_t1v7 currentState first depth
---set the number of black and white pieces according to current state
---set the "min" and "max" players according to who is first
---call minimax, with min, max, and depth
---return best state
-
+--oska_t1v7 currentState player depth = (stateToString (minimax (stringToState currentState) "MAX" depth))
 
 -- ****************************************************
 -- Search Level Logic
 -- ****************************************************
 
---minimaxSearch_t1v7 :: State -> Int -> State
----- currentState, depth, return newState
+--1. Generate the game tree to as many levels (plies) that time and space
+---- constraints allow. The top level is called MAX (as in it’s now MAX’s
+---- turn to move), the next level is called MIN, the next level is MAX, and
+---- so on.
+--2. Apply the evaluation function to all the terminal (leaf) states/boards
+---- to get “goodness” values.
+--3. Use those terminal board values to determine the values to be
+---- assigned to the immediate parents:
+---- a) if the parent is at a MIN level, then the value is
+---- the minimum of the values of its children
+---- b) if the parent is at a MAX level, then the value is
+---- the maximum of the values of its children   
+--4. Keep propagating values upward as in step 3
+-- apply minOrMax to every level of the tree
+--5. When the values reach the top of the game tree, MAX chooses the
+---- move indicated by the highest value
 
---bestState :: [ State ] -> State
----- nextStates newState
+minimaxSearch :: State -> String -> Int -> State
+minimaxSearch state level depth = (maxState 
+									(minOrMax 
+										(propogateMinOrMax 
+										(generateTree (movesForState state) "MIN" (depth - 1)) level depth)
+									level))
 
--- when we add heuristic we can do minMax based on turn
--- and then pick the head of the sorted list or the last
--- for the worst val
-sortState state1 state2
-  | (turn state1) > (turn state2)   = GT
-  | otherwise                       = LT
+generateTree :: [State] -> String -> Int -> [ [ [ State ] ] ]
+generateTree states level depth
+  | null states						= []
+  | (depth == 0)					= []
+  | otherwise						= thisLevel : nextLevel
+    where 
+	  thisLevel = (generateLevel (movesForState(head states)))
+	  nextLevel = (generateTree (tail states) (switchLevel level) (depth - 1))
 
-boardEvaluator :: State -> Int
-boardEvaluator state
-  | ((turn state) == white)		= whiteBoardEvaluator(state)
-  | ((turn state) == black)		= blackBoardEvaluator(state)
+switchLevel :: String -> String
+switchLevel level
+  | (level == "MAX")				= "MIN"
+  | (level == "MIN")				= "MAX"  
+
+generateLevel :: [ State ] -> [ [ State ] ]
+generateLevel states
+  | null states             = []
+  | otherwise               = new : next
+  where
+    new  = (movesForState (head states))
+    next = (generateLevel (tail states))
+		
+	
+propogateMinOrMax :: [ [ [State] ] ] -> String -> Int -> [ [State] ]
+propogateMinOrMax treeOfStates level depth
+  | (depth == 1)			= (head treeOfStates)
+  | otherwise				= (minOrMax (applyToLeaves (head treeOfStates)) level) 
+								: (propogateMinOrMax (tail treeOfStates) (switchLevel level) (depth - 1))
+
+applyToLeaves :: [ [State] ] -> [ [State] ]
+applyToLeaves bottomLevel = (map applyToLeaf bottomLevel)
+	
+applyToLeaf :: [State] -> [State]
+applyToLeaf bottomNode = (map boardEvaluator bottomNode)
+	
+minOrMax :: [ [State] ] -> String -> [State]
+minOrMax states level
+  | (level == "MAX")				= (map maxState states)
+  | (level == "MIN")				= (map minState states)
+
+
+maxState :: [State] -> State
+maxState states 
+  | ((head states) == (last states))											= (head states)
+  | (length states == 2)														= (gState (head states) (head (tail states)))
+  | ((value (head states)) > (value (head (tail states))))						= (maxState ((head states) : (tail (tail states))))
+  | otherwise																	= (maxState (tail states))
   
-whiteBoardEvaluator :: State -> Int
-whiteBoardEvaluator state 
-  = ((piecesDiff (countWhites state (whites state)) (countBlacks state (blacks state))) 
-		+ (whiteJumpDiff state) + (whiteMoves state) + (whiteEndMoveDiff state))
-		* (whiteWinningValue state) * (whiteLosingValue state)
+gState :: State -> State -> State
+gState state1 state2
+  | ((value state1) > (value state2))			= state1
+  | ((value state1) < (value state2))			= state2
+	
+
+minState :: [State] -> State
+minState states 
+  | ((head states) == (last states))											= (head states)
+  | (length states == 2)														= (lState (head states) (head (tail states)))
+  | ((value (head states)) < (value (head (tail states))))						= (minState ((head states) : (tail (tail states))))
+  | otherwise																	= (minState (tail states))
+
+lState :: State -> State -> State
+lState state1 state2
+  | ((value state1) < (value state2))			= state1
+  | ((value state1) > (value state2))			= state2
+
+-- instead of turning a state into an integer, now updates state with calculated value  
+boardEvaluator :: State -> State
+boardEvaluator state
+  | ((turn state) == white)		= whiteBoardEvaluator state 
+  | ((turn state) == black)		= blackBoardEvaluator state
+  
+whiteBoardEvaluator :: State -> State
+whiteBoardEvaluator state = State (whites state) (blacks state) (board state) (turn state) newValue
+	where newValue = ((piecesDiff (countWhites state (whites state)) (countBlacks state (blacks state))) 
+				+ (whiteJumpDiff state) + (whiteMoves state) + (whiteEndMoveDiff state))
+				* (whiteWinningValue state) * (whiteLosingValue state)
 		
 piecesDiff :: Int -> Int -> Int
 piecesDiff x y = x - y
@@ -137,11 +216,11 @@ countWhites state whitePieces
   | null whitePieces		 	= 0
   | otherwise					= 1 + (countWhites state (tail whitePieces))
 
-blackBoardEvaluator :: State -> Int
-blackBoardEvaluator state 
-  = ((piecesDiff (countBlacks state (blacks state)) (countWhites state (whites state))) 
-		+ (blackJumpDiff state) + (blackMoves state) + (blackEndMoveDiff state))
-		* (blackWinningValue state) * (blackLosingValue state)
+blackBoardEvaluator :: State -> State
+blackBoardEvaluator state  = State (whites state) (blacks state) (board state) (turn state) newValue
+	where newValue = ((piecesDiff (countBlacks state (blacks state)) (countWhites state (whites state))) 
+					+ (blackJumpDiff state) + (blackMoves state) + (blackEndMoveDiff state))
+					* (blackWinningValue state) * (blackLosingValue state)
 
 countBlacks :: State -> [Point] -> Int
 countBlacks state blackPieces
@@ -180,14 +259,6 @@ hasBlackLost :: State -> Bool
 hasBlackLost state
   | ((hasWhiteWon state) == True)		= True
   | otherwise							= False
-  
-breadthSearch :: [ State ] -> [ [ State ] ]
-breadthSearch states
-  | null states             = []
-  | otherwise               = (sortBy sortState new) : next
-  where
-    new  = ( movesForState (head states) )
-    next = (breadthSearch (tail states))
 
 
 ---- ****************************************************
@@ -222,7 +293,7 @@ moveStateForPoint pt state
   | both              = [leftMove, rightMove]
   | leftMove /= state = [leftMove]
   | rightMove/= state = [rightMove]
-  | otherwise         = [State [(Point 999 999)] [(Point 999 999)] [(Point 999 999)] white]
+  | otherwise         = [State [(Point 999 999)] [(Point 999 999)] [(Point 999 999)] white (value state)]
   where
     both      = (leftMove /= state) && (rightMove /= state)
     leftMove  = stateAfterMove pt left  state
@@ -241,8 +312,8 @@ jumpStatesForPoint pt state
 
 stateAfterJump :: Point -> Int -> State -> State
 stateAfterJump pt dir state
-  | whiteJump         = State (whites next) (blacks cleanState) (board state) black
-  | blackJump         = State (whites cleanState) (blacks next) (board state) white
+  | whiteJump         = State (whites next) (blacks cleanState) (board state) black (value state)
+  | blackJump         = State (whites cleanState) (blacks next) (board state) white (value state)
   | otherwise         = state
   where
     whiteJump   = (canJump pt dir state) && ( (turn state) == white )
@@ -257,16 +328,16 @@ stateAfterMove pt dir state
 
 replacePointForState :: Point -> Point -> State -> State
 replacePointForState pt newPt state
-  | elem pt ( whites state ) = State (replacePoint pt newPt (whites state)) (blacks state) (board state) nextTurn
-  | elem pt ( blacks state ) = State (whites state) (replacePoint pt newPt (blacks state)) (board state) nextTurn
+  | elem pt ( whites state ) = State (replacePoint pt newPt (whites state)) (blacks state) (board state) nextTurn (value state)
+  | elem pt ( blacks state ) = State (whites state) (replacePoint pt newPt (blacks state)) (board state) nextTurn (value state)
   | otherwise                = state
   where
     nextTurn = ( (-1) * (turn state) )
 
 removePointForState :: Point -> State -> State
 removePointForState pt state
-  | elem pt ( whites state ) = State (removePoint pt (whites state)) (blacks state) (board state) (turn state)
-  | elem pt ( blacks state ) = State (whites state) (removePoint pt (blacks state)) (board state) (turn state)
+  | elem pt ( whites state ) = State (removePoint pt (whites state)) (blacks state) (board state) (turn state) (value state)
+  | elem pt ( blacks state ) = State (whites state) (removePoint pt (blacks state)) (board state) (turn state) (value state)
   | otherwise                = state
 
 
@@ -323,7 +394,7 @@ jump old direction turn
 -- Process Input Signal - Assumes only initial states
 -- ****************************************************
 stringToState :: [String] -> State
-stringToState input = ( State whites blacks board white )
+stringToState input = ( State whites blacks board white 0 )
   where
     whites = (buildWhites (head input) )
     blacks = (buildBlacks (last input) (length input) )
@@ -529,8 +600,8 @@ blackList = (blacks firstState)
 
 firstState = stringToState testString
 
-blockedStateW = ( State [ (Point 3 2) , (Point 3 1) ] [ (Point 4 3),(Point 3 3) ] testBoard white )
-blockedStateB = ( State [ (Point 3 2) ] [ (Point 4 3),(Point 3 3) ] testBoard black )
+blockedStateW = ( State [ (Point 3 2) , (Point 3 1) ] [ (Point 4 3),(Point 3 3) ] testBoard white 0)
+blockedStateB = ( State [ (Point 3 2) ] [ (Point 4 3),(Point 3 3) ] testBoard black 0)
 
 testBoard = [(Point 3 5),(Point 4 5),(Point 2 5),(Point 1 5),(Point 4 4),(Point 3 4),(Point 2 4),(Point 4 3),(Point 3 3),(Point 4 2),(Point 3 2),(Point 2 2),(Point 4 1),(Point 3 1),(Point 2 1),(Point 1 1)]
 
