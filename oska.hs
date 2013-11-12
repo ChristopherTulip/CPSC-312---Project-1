@@ -65,7 +65,9 @@ right = 0
 ---- move indicated by the highest value
 
 minimaxSearch :: State -> String -> Int -> State
-minimaxSearch state level depth = (maxState 
+minimaxSearch state level depth
+  | (depth == 1)				= (maxState (applyToLeaf (movesForState state)))
+  | otherwise					= (maxState 
 									(minOrMax 
 										(propogateMinOrMax 
 										(generateTree (movesForState state) "MIN" (depth - 1)) level depth)
@@ -196,6 +198,7 @@ hasWhiteWon :: State -> Bool
 hasWhiteWon state
   | allBlackGone			= True
   | allBackRow				= True
+  | otherwise				= False
 	where
 	  allBlackGone = ((countWhites state (whites state)) > (countBlacks state (blacks state))) 
 						&& ((countBlacks state (blacks state)) == 0)
@@ -245,6 +248,7 @@ hasBlackWon :: State -> Bool
 hasBlackWon state
   | allWhiteGone			= True
   | allBackRow				= True
+  | otherwise				= False
 	where
 	  allWhiteGone = ((countBlacks state (blacks state)) > (countWhites state (whites state))) 
 					&& ((countWhites state (whites state)) == 0)
