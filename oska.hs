@@ -44,6 +44,73 @@ right = 0
 --oska_t1v7 currentState player depth = (stateToString (minimax (stringToState currentState) "MAX" depth))
 
 -- ****************************************************
+-- Process Output Signal
+-- ****************************************************
+stateToString :: State -> [String]
+stateToString input = repB
+  where
+    repB = replaceBlacks (blacks input) repW
+    repW = (replaceWhites (whites input) brd)
+    brd  = getStringBoard (getBoardByRow (board input) (maxY (board input) 0))
+
+replaceBlacks :: [ Point ] -> [String] -> [String]
+replaceBlacks input brd
+  | null input          = []
+  | otherwise           = replacement : replaceBlacks (tail input) brd
+  where
+    replacement = (replacePointWStr (x (head input)) (y (head input)) 'B' brd)
+
+replaceWhites :: [ Point ] -> [String] -> [String]
+replaceWhites input brd
+  | null input          = []
+  | otherwise           = replacement : replaceWhites (tail input) brd
+  where
+    replacement = (replacePointWStr (x (head input)) (y (head input)) 'W' brd)
+
+replacePointWStr :: Int -> Int -> Char -> [String] -> String
+replacePointWStr xCo yCo rep list
+  | yCo == 1             = (replaceInLine xCo rep (head list))
+  | otherwise            = (replacePointWStr xCo (yCo-1) rep (tail list) )
+
+replaceInLine :: Int -> Char -> String ->String
+replaceInLine xCo rep list
+  | xCo == 1              = rep : (tail list)
+  | otherwise             = (head list) : (replaceInLine (xCo - 1) rep (tail list))
+
+maxY :: [Point] -> Int -> Int
+maxY input bigest
+  | null input        = bigest
+  | (y (head input)) > bigest = maxY (tail input) (y (head input))
+  | otherwise         = maxY (tail input) bigest
+
+getStringBoard :: [ [ Point ] ] -> [ String ]
+getStringBoard list
+  | null list         = []
+  | otherwise         = (rowToString (head list)) : (getStringBoard (tail list))
+
+rowToString :: [ Point ] -> String
+rowToString input
+  | null input        = []
+  | otherwise         = '-' : rowToString (tail input)
+
+getBoardByRow :: [Point] -> Int -> [ [Point] ]
+getBoardByRow input numRows
+  | numRows == 0       = []
+  | otherwise          = first : next
+    where
+      first = (getRowFromBoard (input) numRows [])
+      next = getBoardByRow input (numRows -1)
+
+getRowFromBoard :: [ Point ] -> Int -> [Point] -> [ Point ]
+getRowFromBoard input rowNum retList
+  | null input        = retList
+  | (y (head input)) == rowNum = getRowFromBoard (tail input) rowNum ((head input) : retList)
+  | otherwise         = getRowFromBoard (tail input) rowNum (retList)
+
+
+
+
+-- ****************************************************
 -- Search Level Logic
 -- ****************************************************
 
@@ -58,7 +125,7 @@ right = 0
 ---- a) if the parent is at a MIN level, then the value is
 ---- the minimum of the values of its children
 ---- b) if the parent is at a MAX level, then the value is
----- the maximum of the values of its children   
+---- the maximum of the values of its children
 --4. Keep propagating values upward as in step 3
 -- apply minOrMax to every level of the tree
 --5. When the values reach the top of the game tree, MAX chooses the
@@ -67,9 +134,9 @@ right = 0
 minimaxSearch :: State -> String -> Int -> State
 minimaxSearch state level depth
   | (depth == 1)				= (maxState (applyToLeaf (movesForState state)))
-  | otherwise					= (maxState 
-									(minOrMax 
-										(propogateMinOrMax 
+  | otherwise					= (maxState
+									(minOrMax
+										(propogateMinOrMax
 										(generateTree (movesForState state) "MIN" (depth - 1)) level depth)
 									level))
 
@@ -78,14 +145,14 @@ generateTree states level depth
   | null states						= []
   | (depth == 0)					= []
   | otherwise						= thisLevel : nextLevel
-    where 
+    where
 	  thisLevel = (generateLevel (movesForState(head states)))
 	  nextLevel = (generateTree (tail states) (switchLevel level) (depth - 1))
 
 switchLevel :: String -> String
 switchLevel level
   | (level == "MAX")				= "MIN"
-  | (level == "MIN")				= "MAX"  
+  | (level == "MIN")				= "MAX"
 
 generateLevel :: [ State ] -> [ [ State ] ]
 generateLevel states
@@ -94,20 +161,20 @@ generateLevel states
   where
     new  = (movesForState (head states))
     next = (generateLevel (tail states))
-		
-	
+
+
 propogateMinOrMax :: [ [ [State] ] ] -> String -> Int -> [ [State] ]
 propogateMinOrMax treeOfStates level depth
   | (depth == 1)			= (head treeOfStates)
-  | otherwise				= (minOrMax (applyToLeaves (head treeOfStates)) level) 
+  | otherwise				= (minOrMax (applyToLeaves (head treeOfStates)) level)
 								: (propogateMinOrMax (tail treeOfStates) (switchLevel level) (depth - 1))
 
 applyToLeaves :: [ [State] ] -> [ [State] ]
 applyToLeaves bottomLevel = (map applyToLeaf bottomLevel)
-	
+
 applyToLeaf :: [State] -> [State]
 applyToLeaf bottomNode = (map boardEvaluator bottomNode)
-	
+
 minOrMax :: [ [State] ] -> String -> [State]
 minOrMax states level
   | (level == "MAX")				= (map maxState states)
@@ -115,20 +182,20 @@ minOrMax states level
 
 
 maxState :: [State] -> State
-maxState states 
+maxState states
   | ((head states) == (last states))											= (head states)
   | (length states == 2)														= (gState (head states) (head (tail states)))
   | ((value (head states)) > (value (head (tail states))))						= (maxState ((head states) : (tail (tail states))))
   | otherwise																	= (maxState (tail states))
-  
+
 gState :: State -> State -> State
 gState state1 state2
   | ((value state1) > (value state2))			= state1
-  | ((value state1) < (value state2))			= state2
-	
+  | otherwise			= state2
+
 
 minState :: [State] -> State
-minState states 
+minState states
   | ((head states) == (last states))											= (head states)
   | (length states == 2)														= (lState (head states) (head (tail states)))
   | ((value (head states)) < (value (head (tail states))))						= (minState ((head states) : (tail (tail states))))
@@ -139,18 +206,18 @@ lState state1 state2
   | ((value state1) < (value state2))			= state1
   | ((value state1) > (value state2))			= state2
 
--- instead of turning a state into an integer, now updates state with calculated value  
+-- instead of turning a state into an integer, now updates state with calculated value
 boardEvaluator :: State -> State
 boardEvaluator state
-  | ((turn state) == white)		= whiteBoardEvaluator state 
+  | ((turn state) == white)		= whiteBoardEvaluator state
   | ((turn state) == black)		= blackBoardEvaluator state
-  
+
 whiteBoardEvaluator :: State -> State
 whiteBoardEvaluator state = State (whites state) (blacks state) (board state) (turn state) newValue
-	where newValue = ((piecesDiff (countWhites state (whites state)) (countBlacks state (blacks state))) 
+	where newValue = ((piecesDiff (countWhites state (whites state)) (countBlacks state (blacks state)))
 				+ (whiteJumpDiff state) + (whiteMoves state) + (whiteEndMoveDiff state))
 				* (whiteWinningValue state) * (whiteLosingValue state)
-		
+
 piecesDiff :: Int -> Int -> Int
 piecesDiff x y = x - y
 
@@ -161,7 +228,7 @@ countJumps :: [Point] -> State -> Int
 countJumps pieces state
   | null pieces				= 0
   | otherwise				= (heurJump (head pieces) state) + (countJumps (tail pieces) state)
-  
+
 heurJump :: Point -> State -> Int
 heurJump piece state
   | twoJumps				= 2
@@ -170,7 +237,7 @@ heurJump piece state
 	where
 	  twoJumps = ((canJump piece right state) && (canJump piece left state))
 	  oneJump = ((canJump piece right state) || (canJump piece left state))
-	  
+
 whiteMoves :: State -> Int
 whiteMoves state = (length (movesForState state))
 
@@ -182,7 +249,7 @@ backRowWhites pieces state
   | null pieces										= 0
   | ((y (head pieces)) == (y (last (board state))))	= (backRowWhites (tail pieces) state) + 1
   | otherwise										= 0
- 
+
 backRowBlacks :: [Point] -> State -> Int
 backRowBlacks pieces state
   | null pieces										= 0
@@ -193,27 +260,27 @@ whiteWinningValue :: State -> Int
 whiteWinningValue state
   | ((hasWhiteWon state) == True)	= 10
   | otherwise						= 1
-  
+
 hasWhiteWon :: State -> Bool
 hasWhiteWon state
   | allBlackGone			= True
   | allBackRow				= True
   | otherwise				= False
 	where
-	  allBlackGone = ((countWhites state (whites state)) > (countBlacks state (blacks state))) 
+	  allBlackGone = ((countWhites state (whites state)) > (countBlacks state (blacks state)))
 						&& ((countBlacks state (blacks state)) == 0)
 	  allBackRow = (countWhites state (whites state)) == (backRowWhites (whites state) state)
-  
+
 whiteLosingValue :: State ->Int
 whiteLosingValue state
   | ((hasWhiteLost state) == True)	= -10
   | otherwise						= 1
-  
+
 hasWhiteLost :: State -> Bool
 hasWhiteLost state
   | ((hasBlackWon state) == True)		= True
   | otherwise							= False
-  
+
 countWhites :: State -> [Point] -> Int
 countWhites state whitePieces
   | null whitePieces		 	= 0
@@ -221,7 +288,7 @@ countWhites state whitePieces
 
 blackBoardEvaluator :: State -> State
 blackBoardEvaluator state  = State (whites state) (blacks state) (board state) (turn state) newValue
-	where newValue = ((piecesDiff (countBlacks state (blacks state)) (countWhites state (whites state))) 
+	where newValue = ((piecesDiff (countBlacks state (blacks state)) (countWhites state (whites state)))
 					+ (blackJumpDiff state) + (blackMoves state) + (blackEndMoveDiff state))
 					* (blackWinningValue state) * (blackLosingValue state)
 
@@ -229,7 +296,7 @@ countBlacks :: State -> [Point] -> Int
 countBlacks state blackPieces
   | null blackPieces		 	= 0
   | otherwise					= 1 + (countBlacks state (tail blackPieces))
-  
+
 blackJumpDiff :: State -> Int
 blackJumpDiff state = (countJumps (blacks state) state) - (countJumps (whites state) state)
 
@@ -243,14 +310,14 @@ blackWinningValue :: State ->Int
 blackWinningValue state
   | ((hasBlackWon state) == True)	= 10
   | otherwise						= 1
-  
+
 hasBlackWon :: State -> Bool
 hasBlackWon state
   | allWhiteGone			= True
   | allBackRow				= True
   | otherwise				= False
 	where
-	  allWhiteGone = ((countBlacks state (blacks state)) > (countWhites state (whites state))) 
+	  allWhiteGone = ((countBlacks state (blacks state)) > (countWhites state (whites state)))
 					&& ((countWhites state (whites state)) == 0)
 	  allBackRow = (countBlacks state (blacks state)) == (backRowBlacks (blacks state) state)
 
@@ -258,7 +325,7 @@ blackLosingValue :: State ->Int
 blackLosingValue state
   | ((hasBlackLost state) == True)	= -10
   | otherwise						= 1
-  
+
 hasBlackLost :: State -> Bool
 hasBlackLost state
   | ((hasWhiteWon state) == True)		= True
