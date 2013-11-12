@@ -40,11 +40,12 @@ right = 0
 -- Main
 -- ****************************************************
 
---oska_t1v7 :: [String] -> Char -> Int -> [String]
---oska_t1v7 currentState player depth = (stateToString (minimax (stringToState currentState) "MAX" depth))
+oska_t1v7 :: [String] -> Char -> Int -> [String]
+oska_t1v7 currentState player depth = (stateToString (minimaxSearch (stringToState currentState) "MAX" depth))
 
 -- ****************************************************
--- Process Output Signal
+-- Process Output Signal -- Not perfectly done time crunch
+-- got me (V4L7)
 -- ****************************************************
 stateToString :: State -> [String]
 stateToString input = repB
@@ -55,33 +56,35 @@ stateToString input = repB
 
 replaceBlacks :: [ Point ] -> [String] -> [String]
 replaceBlacks input brd
-  | null input          = []
-  | otherwise           = replacement : replaceBlacks (tail input) brd
+  | null (tail input)   = replacement
+  | otherwise           = replaceBlacks (tail input) replacement
   where
     replacement = (replacePointWStr (x (head input)) (y (head input)) 'B' brd)
 
 replaceWhites :: [ Point ] -> [String] -> [String]
 replaceWhites input brd
-  | null input          = []
-  | otherwise           = replacement : replaceWhites (tail input) brd
+  | null (tail input)   = replacement
+  | otherwise           = replaceWhites (tail input) replacement
   where
     replacement = (replacePointWStr (x (head input)) (y (head input)) 'W' brd)
 
-replacePointWStr :: Int -> Int -> Char -> [String] -> String
+replacePointWStr :: Int -> Int -> Char -> [String] -> [String]
 replacePointWStr xCo yCo rep list
-  | yCo == 1             = (replaceInLine xCo rep (head list))
-  | otherwise            = (replacePointWStr xCo (yCo-1) rep (tail list) )
+  | yCo == 1            = (replaceInLine xCo rep (head list)) : (tail list)
+  | otherwise           = (head list) : (replacePointWStr xCo (yCo-1) rep (tail list) )
+
 
 replaceInLine :: Int -> Char -> String ->String
 replaceInLine xCo rep list
-  | xCo == 1              = rep : (tail list)
+  | null (tail list)      = rep : (tail list)
+  | xCo == 2              = rep : (tail list)
   | otherwise             = (head list) : (replaceInLine (xCo - 1) rep (tail list))
 
 maxY :: [Point] -> Int -> Int
 maxY input bigest
-  | null input        = bigest
+  | null input            = bigest
   | (y (head input)) > bigest = maxY (tail input) (y (head input))
-  | otherwise         = maxY (tail input) bigest
+  | otherwise             = maxY (tail input) bigest
 
 getStringBoard :: [ [ Point ] ] -> [ String ]
 getStringBoard list
@@ -335,12 +338,12 @@ hasBlackLost state
 ---- ****************************************************
 ---- State Level Logic
 ---- ****************************************************
-
+-- V4L7
 movesForState :: State -> [ State ]
 movesForState state
   | (turn state) == white   = possibleMoves (whites state) state
   | otherwise               = possibleMoves (blacks state) state
-
+-- V4L7
 possibleMoves :: [ Point ] -> State -> [ State ]
 possibleMoves pts state
   | null pts                = []
@@ -352,13 +355,13 @@ possibleMoves pts state
 -- ****************************************************
 -- Point Interactions
 -- ****************************************************
-
+-- V4L7
 validMovesForPoint :: Point -> State -> [ State ]
 validMovesForPoint pt state = merge jumpStates moveStates
   where
     jumpStates = jumpStatesForPoint pt state
     moveStates = moveStateForPoint pt state
-
+-- V4L7
 moveStateForPoint :: Point -> State -> [ State ]
 moveStateForPoint pt state
   | both              = [leftMove, rightMove]
@@ -369,7 +372,7 @@ moveStateForPoint pt state
     both      = (leftMove /= state) && (rightMove /= state)
     leftMove  = stateAfterMove pt left  state
     rightMove = stateAfterMove pt right state
-
+-- V4L7
 jumpStatesForPoint :: Point -> State -> [ State ]
 jumpStatesForPoint pt state
   | both              = [leftJump, rightJump]
@@ -380,7 +383,7 @@ jumpStatesForPoint pt state
     both      = (leftJump /= state) && (rightJump /= state)
     leftJump  = stateAfterJump pt left  state
     rightJump = stateAfterJump pt right state
-
+-- V4L7
 stateAfterJump :: Point -> Int -> State -> State
 stateAfterJump pt dir state
   | whiteJump         = State (whites next) (blacks cleanState) (board state) black (value state)
@@ -391,12 +394,12 @@ stateAfterJump pt dir state
     blackJump   = (canJump pt dir state) && ( (turn state) == black )
     next        = replacePointForState pt ( jump pt dir ( turn state ) ) state
     cleanState  = removePointForState ( move pt dir ( turn state ) ) state
-
+-- V4L7
 stateAfterMove :: Point -> Int -> State -> State
 stateAfterMove pt dir state
   | (canMove pt dir state)  = replacePointForState pt ( move pt dir ( turn state ) ) state
   | otherwise               = state
-
+-- V4L7
 replacePointForState :: Point -> Point -> State -> State
 replacePointForState pt newPt state
   | elem pt ( whites state ) = State (replacePoint pt newPt (whites state)) (blacks state) (board state) nextTurn (value state)
@@ -404,20 +407,20 @@ replacePointForState pt newPt state
   | otherwise                = state
   where
     nextTurn = ( (-1) * (turn state) )
-
+-- V4L7
 removePointForState :: Point -> State -> State
 removePointForState pt state
   | elem pt ( whites state ) = State (removePoint pt (whites state)) (blacks state) (board state) (turn state) (value state)
   | elem pt ( blacks state ) = State (whites state) (removePoint pt (blacks state)) (board state) (turn state) (value state)
   | otherwise                = state
 
-
+-- V4L7
 removePoint :: Point ->[ Point ] -> [ Point ]
 removePoint pt pts
   | (null pts)                    = []
   | pt == (head pts)              = (tail pts)
   | otherwise                     = (head pts) : removePoint pt (tail pts)
-
+-- V4L7
 replacePoint :: Point -> Point -> [ Point ] -> [ Point ]
 replacePoint pt newPt pts
   | (null pts)                    = []
@@ -427,7 +430,7 @@ replacePoint pt newPt pts
 -- ****************************************************
 -- Point Level Logic (Eg. Moves)
 -- ****************************************************
-
+-- V4L7
 canJump :: Point -> Int -> State -> Bool
 canJump pt dir state = bounded && blocked && clear
   where
@@ -435,17 +438,18 @@ canJump pt dir state = bounded && blocked && clear
     blocked   = elem (move pt dir (turn state)) (otherPts state)
     bounded   = (pointInBounds nextPoint state)
     clear     = not (pointTaken nextPoint state)
-
+-- V4L7
 canMove :: Point -> Int -> State -> Bool
 canMove pt dir state = bounded && clear
   where
     nextPoint = move pt dir (turn state)
     bounded   = (pointInBounds nextPoint state)
     clear     = not (pointTaken nextPoint state)
-
+-- V4L7
 pointInBounds :: Point -> State -> Bool
 pointInBounds point state = ( elem point (board state) )
 
+-- V4L7
 pointTaken ::  Point -> State -> Bool
 pointTaken point state  = ( elem point (blacks state) ) || ( elem point (whites state) )
 
@@ -464,23 +468,24 @@ jump old direction turn
 -- ****************************************************
 -- Process Input Signal - Assumes only initial states
 -- ****************************************************
+-- V4L7
 stringToState :: [String] -> State
 stringToState input = ( State whites blacks board white 0 )
   where
     whites = (buildWhites (head input) )
     blacks = (buildBlacks (last input) (length input) )
     board  = (buildBoard input ( length (head input) ) (length input) )
-
+-- V4L7
 buildWhites :: String -> [ Point ]
 buildWhites input
   | null input        = []
   | otherwise         = (Point (length input) 1) : buildWhites (tail input)
-
+-- V4L7
 buildBlacks :: String -> Int -> [ Point ]
 buildBlacks input height
   | null input        = []
   | otherwise         = (Point (length input) height) : (buildBlacks (tail input) height)
-
+-- V4L7
 buildBoard :: [ String ] -> Int -> Int -> [ Point ]
 buildBoard input maxWidth height
   | null input        = []
@@ -488,7 +493,7 @@ buildBoard input maxWidth height
   where
     next      = ( buildBoard (tail input) maxWidth height )
     offset    = ( maxWidth - (length (head input) ) )
-
+-- V4L7
 processLine :: String -> Int -> Int -> [ Point ]
 processLine line yCoord offset
   | null line           = []
@@ -501,17 +506,20 @@ processLine line yCoord offset
 -- ****************************************************
 -- Helpers
 -- ****************************************************
+-- V4L7
 merge :: [a] -> [a] -> [a]
 merge [] []               = []
 merge xs []               = xs
 merge [] ys               = ys
 merge (x:xs) (y:ys)       = x : y : merge xs ys
 
+-- V4L7
 nth :: [a] -> Int -> Int -> a
 nth arr i depth
   | i == depth  = (head arr)
   | otherwise   = nth (tail arr) (i+1) depth
 
+-- V4L7
 otherPts state
   | (turn state) == white = (blacks state)
   | otherwise             = (whites state)
@@ -521,6 +529,7 @@ otherPts state
 -- fly here... probs not the best solution but it works
 -- ****************************************************
 
+-- All tests written by V4L7
 testSuite       = functionalTests && unitTests
 functionalTests = t_validMovesForPoint && t_removePointForState && t_removePointForState
 unitTests       = t_canJump && t_canMove && t_pointTaken && t_pointInBounds && t_move && t_jump
